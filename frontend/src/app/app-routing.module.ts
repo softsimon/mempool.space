@@ -16,6 +16,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { LatestBlocksComponent } from './components/latest-blocks/latest-blocks.component';
 import { ApiDocsComponent } from './components/api-docs/api-docs.component';
 import { TermsOfServiceComponent } from './components/terms-of-service/terms-of-service.component';
+import { BisqModule } from './bisq/bisq.module';
 
 const routes: Routes = [
   {
@@ -267,7 +268,7 @@ const routes: Routes = [
   {
     path: 'bisq',
     component: MasterPageComponent,
-    loadChildren: () => import('./bisq/bisq.module').then(m => m.BisqModule)
+    loadChildren: () => Promise.resolve(BisqModule)
   },
   {
     path: 'tv',
