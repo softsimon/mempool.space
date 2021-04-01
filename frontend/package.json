@@ -26,7 +26,7 @@
     "i18n-pull-from-transifex": "tx pull -a --parallel --minimum-perc 1 --force",
     "serve": "ng serve --proxy-config proxy.conf.json",
     "start": "npm run generate-config && npm run sync-assets-dev && ng serve --proxy-config proxy.conf.json",
-    "build": "npm run generate-config && ng build --prod --localize && npm run sync-assets",
+    "build": "npm run generate-config && ng build --prod --subresourceIntegrity --localize && npm run sync-assets",
     "sync-assets": "node sync-assets.js && rsync -av ./dist/mempool/browser/en-US/resources ./dist/mempool/browser/resources",
     "sync-assets-dev": "node sync-assets.js dev",
     "generate-config": "node generate-config.js",
