@@ -35,7 +35,7 @@ class Logger {
   public tags = {
     mining: 'Mining',
     ln: 'Lightning',
-  };  
+  };
 
   // @ts-ignore
   public emerg: ((msg: string, tag?: string) => void);
@@ -74,22 +74,22 @@ class Logger {
   }
 
   private addprio(prio): void {
-    this[prio] = (function(_this) {
-      return function(msg, tag?: string) {
+    this[prio] = (function (_this) {
+      return function (msg, tag?: string) {
         return _this.msg(prio, msg, tag);
       };
     })(this);
   }
 
   private getNetwork(): string {
-    if (config.LIGHTNING.ENABLED) {
-      return config.MEMPOOL.NETWORK === 'mainnet' ? 'lightning' : `${config.MEMPOOL.NETWORK}-lightning`; 
+    if (config?.LIGHTNING?.ENABLED) {
+      return config?.MEMPOOL.NETWORK === 'mainnet' ? 'lightning' : `${config?.MEMPOOL?.NETWORK}-lightning`;
     }
-    if (config.BISQ.ENABLED) {
+    if (config?.BISQ?.ENABLED) {
       return 'bisq';
     }
-    if (config.MEMPOOL.NETWORK && config.MEMPOOL.NETWORK !== 'mainnet') {
-      return config.MEMPOOL.NETWORK;
+    if (config?.MEMPOOL?.NETWORK && config?.MEMPOOL?.NETWORK !== 'mainnet') {
+      return config?.MEMPOOL?.NETWORK;
     }
     return '';
   }
@@ -105,11 +105,11 @@ class Logger {
     prionum = Logger.priorities[priority] || Logger.priorities.info;
     consolemsg = `${this.ts()} [${process.pid}] ${priority.toUpperCase()}:${network} ${tag ? '[' + tag + '] ' : ''}${msg}`;
 
-    if (config.SYSLOG.ENABLED && Logger.priorities[priority] <= Logger.priorities[config.SYSLOG.MIN_PRIORITY]) {
-      syslogmsg = `<${(Logger.facilities[config.SYSLOG.FACILITY] * 8 + prionum)}> ${this.name}[${process.pid}]: ${priority.toUpperCase()}${network} ${tag ? '[' + tag + '] ' : ''}${msg}`;
+    if (config?.SYSLOG?.ENABLED && Logger.priorities[priority] <= Logger.priorities[config?.SYSLOG?.MIN_PRIORITY]) {
+      syslogmsg = `<${(Logger.facilities[config?.SYSLOG?.FACILITY] * 8 + prionum)}> ${this.name}[${process.pid}]: ${priority.toUpperCase()}${network} ${tag ? '[' + tag + '] ' : ''}${msg}`;
       this.syslog(syslogmsg);
     }
-    if (Logger.priorities[priority] > Logger.priorities[config.MEMPOOL.STDOUT_LOG_MIN_PRIORITY]) {
+    if (Logger.priorities[priority] > Logger.priorities[config?.MEMPOOL?.STDOUT_LOG_MIN_PRIORITY]) {
       return;
     }
     if (priority === 'warning') {
@@ -127,7 +127,7 @@ class Logger {
   private syslog(msg) {
     let msgbuf;
     msgbuf = Buffer.from(msg);
-    this.client.send(msgbuf, 0, msgbuf.length, config.SYSLOG.PORT, config.SYSLOG.HOST, function(err, bytes) {
+    this.client.send(msgbuf, 0, msgbuf.length, config?.SYSLOG?.PORT, config?.SYSLOG?.HOST, function (err, bytes) {
       if (err) {
         console.log(err);
       }

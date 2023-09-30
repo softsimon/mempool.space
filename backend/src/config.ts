@@ -1,6 +1,25 @@
-const configFromFile = require(
-    process.env.MEMPOOL_CONFIG_FILE ? process.env.MEMPOOL_CONFIG_FILE : '../mempool-config.json'
-);
+import * as fs from 'fs';
+import logger from './logger';
+
+let configContent;
+let configFromFile = {};
+let configPath = process.env.MEMPOOL_CONFIG_FILE ? process.env.MEMPOOL_CONFIG_FILE : '../mempool-config.json';
+
+try {
+  configContent = fs.readFileSync(configPath, 'utf-8');
+  configFromFile = JSON.parse(configContent);
+
+} catch (e: any) {
+  if (e instanceof SyntaxError) {
+    logger.err(`${e.name} while parsing the config file: ${configContent}`);
+    process.exit(-1);
+  } else if (e.message.indexOf('ENOENT') === 0) {
+    logger.warn(`${configPath} not found, using default configuration`);
+  } else {
+    logger.err(e.message);
+  }
+
+}
 
 interface IConfig {
   MEMPOOL: {
