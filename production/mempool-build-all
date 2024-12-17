@@ -131,7 +131,7 @@ export NVM_DIR="${HOME}/.nvm"
 source "${NVM_DIR}/nvm.sh"
 
 # what to look for
-frontends=(mainnet liquid onbtc bitb meta)
+frontends=(mainnet liquid onbtc bitb meta river)
 backends=(mainnet testnet testnet4 signet liquid liquidtestnet onbtc bitb)
 frontend_repos=()
 backend_repos=()

@@ -16,7 +16,7 @@ screen -dmS x startx
 sleep 3
 
 # start unfurlers for each frontend
-for site in mainnet liquid onbtc bitb meta;do
+for site in mainnet liquid onbtc bitb meta river;do
     cd "$HOME/${site}/unfurler" && \
     echo "starting mempool unfurler: ${site}" && \
     screen -dmS "unfurler-${site}" sh -c 'while true;do npm run unfurler;sleep 2;done'

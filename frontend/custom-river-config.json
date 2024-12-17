@@ -1,0 +1,51 @@
+{
+  "theme": "wiz",
+  "enterprise": "river",
+  "branding": {
+    "name": "river",
+    "title": "river",
+    "site_id": 22,
+    "header_img": "/resources/riverlogo.svg",
+    "footer_img": "/resources/riverlogo.svg"
+  },
+  "dashboard": {
+    "widgets": [
+      {
+        "component": "fees",
+        "mobileOrder": 4
+      },
+      {
+        "component": "walletBalance",
+        "mobileOrder": 1,
+        "props": {
+          "wallet": "RIVER"
+        }
+      },
+      {
+        "component": "twitter",
+        "mobileOrder": 5,
+        "props": {
+          "handle": "River"
+        }
+      },
+      {
+        "component": "wallet",
+        "mobileOrder": 2,
+        "props": {
+          "wallet": "RIVER",
+          "period": "all"
+        }
+      },
+      {
+        "component": "blocks"
+      },
+      {
+        "component": "walletTransactions",
+        "mobileOrder": 3,
+        "props": {
+          "wallet": "RIVER"
+        }
+      }
+    ]
+  }
+}
