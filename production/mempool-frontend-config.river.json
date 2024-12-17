@@ -1,0 +1,19 @@
+{
+  "OFFICIAL_MEMPOOL_SPACE": true,
+  "TESTNET_ENABLED": true,
+  "TESTNET4_ENABLED": true,
+  "LIQUID_ENABLED": true,
+  "LIQUID_TESTNET_ENABLED": true,
+  "BISQ_ENABLED": true,
+  "BISQ_SEPARATE_BACKEND": true,
+  "SIGNET_ENABLED": true,
+  "MEMPOOL_WEBSITE_URL": "https://mempool.space",
+  "LIQUID_WEBSITE_URL": "https://liquid.network",
+  "BISQ_WEBSITE_URL": "https://bisq.markets",
+  "ITEMS_PER_PAGE": 25,
+  "LIGHTNING": true,
+  "ACCELERATOR": true,
+  "PUBLIC_ACCELERATIONS": true,
+  "AUDIT": true,
+  "CUSTOMIZATION": "custom-river-config.json"
+}
