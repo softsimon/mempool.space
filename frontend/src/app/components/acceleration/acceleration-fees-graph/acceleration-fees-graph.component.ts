@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, Input, LOCALE_ID, NgZone, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { EChartsOption } from '@app/graphs/echarts';
+import { echarts, EChartsOption } from '@app/graphs/echarts';
 import { Observable, Subject, Subscription, combineLatest, fromEvent, merge, share } from 'rxjs';
 import { startWith, switchMap, tap } from 'rxjs/operators';
 import { SeoService } from '@app/services/seo.service';
@@ -12,7 +12,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Acceleration } from '@interfaces/node-api.interface';
 import { ServicesApiServices } from '@app/services/services-api.service';
 import { StateService } from '@app/services/state.service';
-import { RelativeUrlPipe } from '@app/shared/pipes/relative-url/relative-url.pipe';
 
 @Component({
   selector: 'app-acceleration-fees-graph',
@@ -31,9 +30,9 @@ import { RelativeUrlPipe } from '@app/shared/pipes/relative-url/relative-url.pip
 export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDestroy {
   @Input() widget: boolean = false;
   @Input() height: number = 300;
-  @Input() right: number | string = 45;
-  @Input() left: number | string = 75;
-  @Input() period: '24h' | '3d' | '1w' | '1m' | 'all' = '1w';
+  @Input() right: number | string = 70;
+  @Input() left: number | string = 55;
+  @Input() period: '24h' | '1w' | '1m' | '1y' | 'all' = '1y';
   @Input() accelerations$: Observable<Acceleration[]>;
 
   miningWindowPreference: string;
@@ -49,7 +48,7 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
   isLoading = true;
   formatNumber = formatNumber;
   timespan = '';
-  periodSubject$: Subject<'24h' | '3d' | '1w' | '1m' | 'all'> = new Subject();
+  periodSubject$: Subject<'24h' | '1w' | '1m' | '1y' | 'all'> = new Subject();
   chartInstance: any = undefined;
   daysAvailable: number = 0;
 
@@ -62,9 +61,7 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
     private miningService: MiningService,
     private route: ActivatedRoute,
     public stateService: StateService,
-    private cd: ChangeDetectorRef,
-    private router: Router,
-    private zone: NgZone,
+    private cd: ChangeDetectorRef
   ) {
     this.radioGroupForm = this.formBuilder.group({ dateSpan: '1w' });
     this.radioGroupForm.controls.dateSpan.setValue('1w');
@@ -81,7 +78,7 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
     this.radioGroupForm.controls.dateSpan.setValue(this.miningWindowPreference);
     
     this.route.fragment.subscribe((fragment) => {
-      if (['24h', '3d', '1w', '1m', '3m', 'all'].indexOf(fragment) > -1) {
+      if (['1w', '1m', '1y', 'all'].indexOf(fragment) > -1) {
         this.radioGroupForm.controls.dateSpan.setValue(fragment, { emitEvent: false });
       }
     });
@@ -96,7 +93,9 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
           if (!this.widget) {
             this.storageService.setValue('miningWindowPreference', timespan);
           }
-          this.isLoading = true;
+          if (timespan !== this.timespan) {
+            this.isLoading = true;
+          }
           this.timespan = timespan;
           return this.servicesApiService.getAggregatedAccelerationHistory$({timeframe: this.timespan});
         })
@@ -118,6 +117,9 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.period) {
+      if (this.period === '24h') {
+        this.period = '1m';
+      }
       this.periodSubject$.next(this.period);
     }
   }
@@ -139,13 +141,19 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
     this.chartOptions = {
       title: title,
       color: [
-        '#8F5FF6',
-        '#6b6b6b',
+        new echarts.graphic.LinearGradient(0, 0, 0, 0.65, [
+          { offset: 0, color: '#F4511E' },
+          { offset: 0.25, color: '#FB8C00' },
+          { offset: 0.5, color: '#FFB300' },
+          { offset: 0.75, color: '#FDD835' },
+          { offset: 1, color: '#7CB342' }
+        ]),
+        '#ab2dce',
       ],
       animation: false,
       grid: {
-        height: (this.widget && this.height) ? this.height - 30 : undefined,
-        top: this.widget ? 20 : 40,
+        height: (this.widget && this.height) ? this.height - 50 : undefined,
+        top: this.widget ? 40 : 60,
         bottom: this.widget ? 30 : 80,
         right: this.right,
         left: this.left,
@@ -167,17 +175,18 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
         formatter: (ticks) => {
           let tooltip = `<b style="color: white; margin-left: 2px">${formatterXAxis(this.locale, this.timespan, parseInt(ticks[0].axisValue, 10))}</b><br>`;
 
-          if (ticks[0].data[1] > 10_000_000) {
-            tooltip += `${ticks[0].marker} ${ticks[0].seriesName}: ${formatNumber(ticks[0].data[1] / 100_000_000, this.locale, '1.0-8')} BTC<br>`;
-          } else {
-            tooltip += `${ticks[0].marker} ${ticks[0].seriesName}: ${formatNumber(ticks[0].data[1], this.locale, '1.0-0')} sats<br>`;
+          for (const tick of ticks) {
+            if (tick.seriesName === 'Total bid boost') {
+              if (tick.data[1] > 10_000_000) {
+                tooltip += `${tick.marker} ${tick.seriesName}: ${formatNumber(tick.data[1] / 100_000_000, this.locale, '1.0-8')} BTC<br>`;
+              } else {
+                tooltip += `${tick.marker} ${tick.seriesName}: ${formatNumber(tick.data[1], this.locale, '1.0-0')} sats<br>`;
+              }
+            } else if (tick && tick.seriesName === 'Accelerated') {
+              tooltip += `${tick.marker} ${tick.seriesName}: ${formatNumber(tick.data[1], this.locale, '1.0-0')}<br>`;
+            }  
           }
-
-          if (['24h', '3d'].includes(this.timespan)) {
-            tooltip += `<small>` + $localize`At block: ${ticks[0].data[2]}` + `</small>`;
-          } else {
-            tooltip += `<small>` + $localize`Around block: ${ticks[0].data[2]}` + `</small>`;
-          }
+          tooltip += `<small>` + $localize`Around block: ${ticks[0].data[2]}` + `</small>`;
 
           return tooltip;
         }
@@ -209,6 +218,17 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
             textStyle: {
               color: 'white',
             },
+            itemStyle: {
+              color: '#FFB300',
+            },
+            icon: 'roundRect',
+          },
+          {
+            name: 'Accelerated',
+            inactiveColor: 'rgb(110, 112, 121)',
+            textStyle: {
+              color: 'white',
+            },
             icon: 'roundRect',
           },
         ],
@@ -220,6 +240,13 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
       yAxis: data.length === 0 ? undefined : [
         {
           type: 'value',
+          name: 'Total bid boost',
+          position: 'right',
+          nameTextStyle: {
+            align: 'right',
+            padding: [0, -65, 0, 0],
+            fontStyle: 'italic',
+          },
           axisLabel: {
             color: 'rgb(110, 112, 121)',
             formatter: (val) => {
@@ -230,6 +257,20 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
               }
             }
           },
+          splitLine: null
+        },
+        {
+          type: 'value',
+          name: 'Accelerated',
+          position: 'left',
+          axisLabel: {
+            color: 'rgb(110, 112, 121)',
+          },
+          nameTextStyle: {
+            align: 'right',
+            padding: [0, -35, 0, 0],
+            fontStyle: 'italic',
+          },
           splitLine: {
             lineStyle: {
               type: 'dotted',
@@ -238,33 +279,28 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
             }
           },
         },
-        {
-          type: 'value',
-          position: 'right',
-          axisLabel: {
-            color: 'rgb(110, 112, 121)',
-            formatter: function(val) {
-              return `${val}`;
-            }.bind(this)
-          },
-          splitLine: {
-            show: false,
-          },
-        },
       ],
       series: data.length === 0 ? undefined : [
         {
-          legendHoverLink: false,
-          zlevel: 1,
           name: 'Total bid boost',
           data: data.map(h =>  {
             return [h.timestamp * 1000, h.sumBidBoost, h.avgHeight]
           }),
-          stack: 'Total',
+          type: 'line',
+          symbol: 'none',
+          lineStyle: {
+            width: 1,
+          },
+          smooth: true,
+        },
+        {
+          name: 'Accelerated',
+          yAxisIndex: 1,
+          data: data.map(h =>  {
+            return [h.timestamp * 1000, h.count, h.avgHeight]
+          }),
           type: 'bar',
           barWidth: '90%',
-          large: true,
-          barMinHeight: 3,
         },
       ],
       dataZoom: (this.widget || data.length === 0 )? undefined : [{
@@ -297,19 +333,6 @@ export class AccelerationFeesGraphComponent implements OnInit, OnChanges, OnDest
 
   onChartInit(ec) {
     this.chartInstance = ec;
-
-    this.chartInstance.on('click', (e) => {
-      this.zone.run(() => {
-        if (['24h', '3d'].includes(this.timespan)) {
-          const url = new RelativeUrlPipe(this.stateService).transform(`/block/${e.data[2]}`);
-          if (e.event.event.shiftKey || e.event.event.ctrlKey || e.event.event.metaKey) {
-            window.open(url);
-          } else {
-            this.router.navigate([url]);
-          }
-        }
-      });
-    });
   }
 
   isMobile() {

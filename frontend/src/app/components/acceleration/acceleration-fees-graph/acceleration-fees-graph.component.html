@@ -11,12 +11,6 @@
 
     <form [formGroup]="radioGroupForm" class="formRadioGroup" *ngIf="daysAvailable">
       <div class="btn-group btn-group-toggle" name="radioBasic">
-        <label class="btn btn-primary btn-sm" [class.active]="radioGroupForm.get('dateSpan').value === '24h'">
-          <input type="radio" [value]="'24h'" fragment="24h" [routerLink]="['/graphs/acceleration/fees' | relativeUrl]" formControlName="dateSpan"> 24H
-        </label>
-        <label class="btn btn-primary btn-sm" *ngIf="daysAvailable >= 1" [class.active]="radioGroupForm.get('dateSpan').value === '3d'">
-          <input type="radio" [value]="'3d'" fragment="3d" [routerLink]="['/graphs/acceleration/fees' | relativeUrl]" formControlName="dateSpan"> 3D
-        </label>
         <label class="btn btn-primary btn-sm" *ngIf="daysAvailable >= 3" [class.active]="radioGroupForm.get('dateSpan').value === '1w'">
           <input type="radio" [value]="'1w'" fragment="1w" [routerLink]="['/graphs/acceleration/fees' | relativeUrl]" formControlName="dateSpan"> 1W
         </label>

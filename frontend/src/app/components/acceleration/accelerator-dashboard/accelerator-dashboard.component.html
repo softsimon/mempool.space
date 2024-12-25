@@ -26,11 +26,11 @@
           @case ('24h') {
             <span style="font-size: xx-small" i18n="mining.1-day">(1 day)</span>
           }
-          @case ('1w') {
-            <span style="font-size: xx-small" i18n="mining.1-week">(1 week)</span>
-          }
           @case ('1m') {
             <span style="font-size: xx-small" i18n="mining.1-month">(1 month)</span>
+          }
+          @case ('1y') {
+            <span style="font-size: xx-small" i18n="mining.1-year">(1 year)</span>
           }
           @case ('all') {
             <span style="font-size: xx-small" i18n="mining.all-time">(all time)</span>
@@ -45,11 +45,11 @@
               <a href="" (click)="setTimespan('24h')" class="toggler-option"
                 [ngClass]="{'inactive': timespan === '24h'}"><small>24h</small></a>
               <span style="color: #ffffff66; font-size: 8px"> | </span>
-              <a href="" (click)="setTimespan('1w')" class="toggler-option"
-                [ngClass]="{'inactive': timespan === '1w'}"><small>1w</small></a>
-              <span style="color: #ffffff66; font-size: 8px"> | </span>
               <a href="" (click)="setTimespan('1m')" class="toggler-option"
               [ngClass]="{'inactive': timespan === '1m'}"><small>1m</small></a>
+              <span style="color: #ffffff66; font-size: 8px"> | </span>
+              <a href="" (click)="setTimespan('1y')" class="toggler-option"
+                [ngClass]="{'inactive': timespan === '1y'}"><small>1y</small></a>
               <span style="color: #ffffff66; font-size: 8px"> | </span>
               <a href="" (click)="setTimespan('all')" class="toggler-option"
               [ngClass]="{'inactive': timespan === 'all'}"><small>all</small></a>
@@ -79,13 +79,15 @@
     <div class="col" style="margin-bottom: 1.47rem">
       <div class="card graph-card">
         <div class="card-body pl-2 pr-2">
-          <h5 class="card-title" i18n="acceleration.total-bid-boost">Total Bid Boost</h5>
+          <h5 class="card-title" i18n="acceleration.historical-trend">Historical Trend</h5>
           <div class="mempool-graph">
             <app-acceleration-fees-graph
               [height]="graphHeight"
               [attr.data-cy]="'acceleration-fees'"
               [widget]=true
               [period]="timespan"
+              [right]="80"
+              [left]="50"
             ></app-acceleration-fees-graph>
           </div>
           <div class="mt-1"><a [attr.data-cy]="'acceleration-fees-view-more'" [routerLink]="['/graphs/acceleration/fees' | relativeUrl]" i18n="dashboard.view-more">View more &raquo;</a></div>

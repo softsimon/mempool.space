@@ -37,7 +37,7 @@ export class AcceleratorDashboardComponent implements OnInit, OnDestroy {
   webGlEnabled = true;
   seen: Set<string> = new Set();
   firstLoad = true;
-  timespan: '24h' | '3d' | '1w' | '1m' | 'all' = '1w';
+  timespan: '24h' | '1m' | '1y' | 'all' = '1y';
 
   accelerationDeltaSubscription: Subscription;
 

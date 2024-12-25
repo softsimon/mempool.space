@@ -217,6 +217,7 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
       this.loadingBtcpayInvoice = true;
       this.invoice = null;
       this.requestBTCPayInvoice();
+      this.scrollToElementWithTimeout('acceleratePreviewAnchor', 'start', 100);
     } else if (this._step === 'cashapp' && this.cashappEnabled) {
       this.loadingCashapp = true;
       this.setupSquare();
