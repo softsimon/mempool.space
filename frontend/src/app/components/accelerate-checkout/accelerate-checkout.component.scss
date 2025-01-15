@@ -146,6 +146,11 @@
 
 .payment-area {
   background: var(--bg);
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  @media (max-width: 575px) {
+    padding-bottom: 1.25rem;
+  }
 }
 
 .col.pie {
@@ -212,4 +217,17 @@
 }
 .apple-pay-button-white-with-line {
     -apple-pay-button-style: white-outline;
+}
+
+.btcpay-invoice {
+  display: flex;
+  height: 292px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  @media (max-width: 575px) {
+    height: 75px;
+    flex-direction: row;
+    gap: 5px;
+  }
 }
