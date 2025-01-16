@@ -1,0 +1,3 @@
+I hereby accept the terms of the Contributor License Agreement in the CONTRIBUTING.md file of the mempool/mempool git repository as of August 18, 2024.
+
+Signed: 1ma

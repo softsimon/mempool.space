@@ -106,6 +106,25 @@ In particular, make sure:
   - "esplora" if you're using [mempool/electrs](https://github.com/mempool/electrs)
   - "none" if you're not using any Electrum Server
 
+You can use the `generate-config.js` script to define your configuration in a non-interactive way.
+Basic usage:
+
+```
+node generate-config.js ELECTRUM.PORT=50001 CORE_RPC.COOKIE=true CORE_RPC.COOKIE_PATH=/var/lib/bitcoind/.cookie REPLICATION.SERVERS='["example1.com","example2.com"]'
+```
+
+This will create the `mempool-config.json` file using all default values from the sample file
+except for the custom values specified.
+
+The special parameters `SOURCE_CONFIG_FILE` and `DEST_CONFIG_FILE` allows specifying a custom source
+template and/or a custom destination file.
+
+If present, they must be accessible valid paths on the local filesystem.
+
+```
+node generate-config.js ELECTRUM.PORT=50001 SOURCE_CONFIG_FILE=another-sample.json DEST_CONFIG_FILE=/etc/mempool/backend.json
+```
+
 ### 6. Run Mempool Backend
 
 Run the Mempool backend:
