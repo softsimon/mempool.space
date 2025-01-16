@@ -1089,6 +1089,7 @@ case $OS in
         echo "[*] Installing syslog configuration"
         osSudo "${ROOT_USER}" mkdir -p /usr/local/etc/syslog.d
         osSudo "${ROOT_USER}" install -c -m 755 "${MEMPOOL_HOME}/${MEMPOOL_REPO_NAME}/production/mempool-logger" /usr/local/bin/mempool-logger
+        osSudo "${ROOT_USER}" install -c -m 755 "${MEMPOOL_HOME}/${MEMPOOL_REPO_NAME}/production/mempool-slacker" /usr/local/bin/mempool-slacker
         osSudo "${ROOT_USER}" install -c -m 644 "${MEMPOOL_HOME}/${MEMPOOL_REPO_NAME}/production/syslog.conf" /usr/local/etc/syslog.d/mempool.conf
 
         echo "[*] Installing redis configuration"

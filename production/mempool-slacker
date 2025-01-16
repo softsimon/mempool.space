@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ -z "$SLACK_SYSLOG_WEBHOOK_URL" ]; then
+    echo "Error: SLACK_SYSLOG_WEBHOOK_URL environment variable is not set" >&2
+    exit 1
+fi
+
+trap "" PIPE
+while read input; do
+    if [ ! -z "${input}" ]; then
+        escaped_input=$(echo "$input" | sed 's/"/\\"/g')
+        curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{\"text\":\"\`\`\`${escaped_input}\`\`\`\"}" \
+            -s \
+            "$SLACK_SYSLOG_WEBHOOK_URL" \
+            >/dev/null 2>&1 &
+    fi
+done
