@@ -1,9 +1,8 @@
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription, of, timer } from 'rxjs';
-import { filter, repeat, retry, switchMap, take, tap } from 'rxjs/operators';
+import { Subscription, of, catchError } from 'rxjs';
+import { retry, tap } from 'rxjs/operators';
 import { ServicesApiServices } from '@app/services/services-api.service';
 
 @Component({
@@ -18,30 +17,17 @@ export class BitcoinInvoiceComponent implements OnInit, OnChanges, OnDestroy {
   @Output() completed = new EventEmitter();
 
   paymentForm: FormGroup;
-  requestSubscription: Subscription | undefined;
   paymentStatusSubscription: Subscription | undefined;
   paymentStatus = 1; // 1 - Waiting for invoice | 2 - Pending payment | 3 - Payment completed
-  paramMapSubscription: Subscription | undefined;
-  invoiceSubscription: Subscription | undefined;
-  invoiceTimeout; // Wait for angular to load all the things before making a request
+  paymentErrorMessage: string = '';
 
   constructor(
     private formBuilder: FormBuilder,
     private apiService: ServicesApiServices,
-    private sanitizer: DomSanitizer,
-    private activatedRoute: ActivatedRoute
+    private sanitizer: DomSanitizer
   ) { }
 
   ngOnDestroy() {
-    if (this.requestSubscription) {
-      this.requestSubscription.unsubscribe();
-    }
-    if (this.paramMapSubscription) {
-      this.paramMapSubscription.unsubscribe();
-    }
-    if (this.invoiceSubscription) {
-      this.invoiceSubscription.unsubscribe();
-    }
     if (this.paymentStatusSubscription) {
       this.paymentStatusSubscription.unsubscribe();
     }
@@ -72,15 +58,39 @@ export class BitcoinInvoiceComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this.paymentStatus = 4;
     }
+
+    this.monitorPendingInvoice();
+  }
+
+  monitorPendingInvoice(): void {
+    if (!this.invoice) {
+      return;
+    }
+    if (this.paymentStatusSubscription) {
+      this.paymentStatusSubscription.unsubscribe();
+    }
     this.paymentStatusSubscription = this.apiService.getPaymentStatus$(this.invoice.btcpayInvoiceId).pipe(
-      retry({ delay: () => timer(2000)}),
-      repeat({delay: 2000}),
-      filter((response) => response.status !== 204 && response.status !== 404),
-      take(1),
-    ).subscribe(() => {
-      this.paymentStatus = 3;
-      this.completed.emit();
-    });
+      tap(result => {
+        if (result.status === 204) { // Manually trigger an error in that case so we can retry
+          throw result;
+        } else if (result.status === 200) { // Invoice settled
+          this.paymentStatus = 3;
+          this.completed.emit();
+        }
+      }),
+      catchError(err => {
+        if (err.status === 204 || err.status === 504) {
+          throw err; // Will trigger the retry
+        } else if (err.status === 400) {
+          this.paymentErrorMessage = 'Invoice has expired';
+        } else if (err.status === 404) {
+          this.paymentErrorMessage = 'Invoice is no longer valid';
+        }
+        this.paymentStatus = -1;
+        return of(null);
+      }),
+      retry({ delay: 1000 }),
+    ).subscribe();
   }
 
   get availableMethods(): string[] {

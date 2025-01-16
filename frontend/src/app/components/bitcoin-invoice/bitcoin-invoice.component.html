@@ -10,6 +10,10 @@
     </span>
   }
 
+  <div class="d-flex justify-content-center">
+    <app-mempool-error *ngIf="paymentErrorMessage" [error]="paymentErrorMessage"></app-mempool-error>
+  </div>
+
   <div *ngIf="paymentStatus === 2">
     
     <form [formGroup]="paymentForm">
