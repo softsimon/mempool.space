@@ -62,7 +62,6 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
   @Input() miningStats: MiningStats;
   @Input() eta: ETA;
   @Input() scrollEvent: boolean;
-  @Input() cashappEnabled: boolean = true;
   @Input() applePayEnabled: boolean = false;
   @Input() googlePayEnabled: boolean = true;
   @Input() advancedEnabled: boolean = false;
@@ -217,7 +216,7 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
       this.loadingBtcpayInvoice = true;
       this.invoice = null;
       this.requestBTCPayInvoice();
-    } else if (this._step === 'cashapp' && this.cashappEnabled) {
+    } else if (this._step === 'cashapp') {
       this.loadingCashapp = true;
       this.setupSquare();
       this.scrollToElementWithTimeout('confirm-title', 'center', 100);
@@ -828,9 +827,6 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
   }
 
   get couldPayWithCashapp(): boolean {
-    if (!this.cashappEnabled) {
-      return false;
-    }
     return !!this.estimate?.availablePaymentMethods?.cashapp;
   }
 
@@ -865,7 +861,7 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
   }
 
   get canPayWithCashapp(): boolean {
-    if (!this.cashappEnabled || !this.conversions || (!this.isProdDomain && !isDevMode())) {
+    if (!this.conversions || (!this.isProdDomain && !isDevMode())) {
       return false;
     }
 

@@ -756,10 +756,6 @@ export class TrackerComponent implements OnInit, OnDestroy {
     }
   }
 
-  get cashappEligible(): boolean {
-    return this.mempoolPosition?.block > 0 && this.tx.weight < 4000;
-  }
-
   get showAccelerationSummary(): boolean {
     return (
       this.tx

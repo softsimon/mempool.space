@@ -156,7 +156,6 @@ export class TransactionComponent implements OnInit, AfterViewInit, OnDestroy {
   showAccelerationDetails = false;
   hasAccelerationDetails = false;
   scrollIntoAccelPreview = false;
-  cashappEligible = false;
   auditEnabled: boolean = this.stateService.env.AUDIT && this.stateService.env.BASE_MODULE === 'mempool' && this.stateService.env.MINING_DASHBOARD === true;
   isMempoolSpaceBuild = this.stateService.isMempoolSpaceBuild;
 
@@ -527,9 +526,6 @@ export class TransactionComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.miningService.getMiningStats('1m').subscribe(stats => {
                   this.miningStats = stats;
                 });
-              }
-              if (txPosition.position?.block > 0 && this.tx.weight < 4000) {
-                this.cashappEligible = true;
               }
               if (!this.gotInitialPosition && txPosition.position?.block === 0 && txPosition.position?.vsize < 750_000) {
                 this.accelerationFlowCompleted = true;
@@ -1036,7 +1032,6 @@ export class TransactionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.showAccelerationDetails = false;
     this.accelerationFlowCompleted = false;
     this.accelerationInfo = null;
-    this.cashappEligible = false;
     this.txInBlockIndex = null;
     this.mempoolPosition = null;
     this.pool = null;

@@ -138,7 +138,6 @@
 
       <app-accelerate-checkout
         *ngIf="(da$ | async) as da;"
-        [cashappEnabled]="cashappEligible"
         [advancedEnabled]="true"
         [tx]="tx"
         [accelerating]="isAcceleration"
