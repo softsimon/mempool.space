@@ -84,7 +84,7 @@
   "DATABASE": {
     "ENABLED": true,
     "HOST": "127.0.0.1",
-    "SOCKET": "/var/run/mysql/mysql.sock",
+    "SOCKET": "__DB_SOCKET__",
     "USERNAME": "__MEMPOOL_MAINNET_LIGHTNING_USER__",
     "PASSWORD": "__MEMPOOL_MAINNET_LIGHTNING_PASS__",
     "DATABASE": "mempool_mainnet_lightning"

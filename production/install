@@ -400,19 +400,29 @@ LIQUIDTESTNET_ASSET_REGISTRY_DB_NAME=asset_registry_testnet_db
 ##### OS packages #####
 #######################
 
+# packages needed to run this script
+DEBIAN_PREREQ_PKG=()
+DEBIAN_PREREQ_PKG+=(dialog)
+
 # packages needed for mempool ecosystem
 DEBIAN_PKG=()
-DEBIAN_PKG+=(zsh vim curl screen openssl python3 dialog cron)
+DEBIAN_PKG+=(zsh vim curl screen openssl python3 cron acl)
 DEBIAN_PKG+=(build-essential git git-lfs clang cmake jq)
 DEBIAN_PKG+=(autotools-dev autoconf automake pkg-config bsdmainutils)
 DEBIAN_PKG+=(libevent-dev libdb-dev libssl-dev libtool autotools-dev)
 DEBIAN_PKG+=(libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev)
 DEBIAN_PKG+=(nodejs npm mariadb-server nginx-core python3-certbot-nginx rsync ufw)
-DEBIAN_PKG+=(geoipupdate)
+DEBIAN_PKG+=(geoipupdate redis)
+DEBIAN_PKG+=(cargo)
+DEBIAN_PKG+=(openjdk-11-jdk)
 
 DEBIAN_UNFURL_PKG=()
 DEBIAN_UNFURL_PKG+=(cups chromium-bsu libatk1.0 libatk-bridge2.0 libxkbcommon-dev libxcomposite-dev)
 DEBIAN_UNFURL_PKG+=(libxdamage-dev libxrandr-dev libgbm-dev libpango1.0-dev libasound-dev)
+
+# packages needed to run this script
+FREEBSD_PREREQ_PKG=()
+FREEBSD_PREREQ_PKG+=(dialog)
 
 # packages needed for mempool ecosystem
 FREEBSD_PKG=()
@@ -491,6 +501,18 @@ osPackageInstallAll()
         ;;
         Debian)
             osPackageInstall ${DEBIAN_PKG[@]}
+        ;;
+    esac
+}
+
+osPackageInstallPreReq()
+{
+    case $OS in
+        FreeBSD)
+            osPackageInstall ${FREEBSD_PREREQ_PKG[@]}
+        ;;
+        Debian)
+            osPackageInstall ${DEBIAN_PREREQ_PKG[@]}
         ;;
     esac
 }
@@ -676,6 +698,14 @@ zfsCreateFilesystems()
 ext4CreateDir()
 {
     mkdir -p "/backup" "${ELEMENTS_HOME}" "${BITCOIN_HOME}" "${MINFEE_HOME}" "${ELECTRS_HOME}" "${MEMPOOL_HOME}" "${MYSQL_HOME}" "${BITCOIN_ELECTRS_HOME}" "${ELEMENTS_HOME}/liquidv1" "${ELEMENTS_ELECTRS_HOME}"
+    mkdir -p /var/cache/nginx/services /var/cache/nginx/api
+    chown "${NGINX_USER}:${NGINX_GROUP}" /var/cache/nginx/services /var/cache/nginx/api
+
+    # create /bitcoin/socket with custom ACL for electrs unix sockets
+    mkdir -p "${BITCOIN_HOME}/socket"
+
+    # create /elements/socket with custom ACL for electrs unix sockets
+    mkdir -p "${ELEMENTS_HOME}/socket"
 
     # Bitcoin Mainnet
     if [ "${BITCOIN_MAINNET_ENABLE}" = ON ];then
@@ -775,6 +805,11 @@ ext4CreateDir()
     fi
 }
 
+#################################
+# Install prerequisite packages #
+#################################
+
+osPackageInstallPreReq
 
 ##### Perform sanity checks before trying anything
 
@@ -1106,6 +1141,9 @@ case $OS in
         echo "[*] Installing syslog configuration"
         osSudo "${ROOT_USER}" install -c -m 644 "${MEMPOOL_HOME}/${MEMPOOL_REPO_NAME}/production/linux/rsyslog.conf" /etc/rsyslog.d/10-mempool.conf
         osSudo "${ROOT_USER}" sed -i.orig -e 's/^\*\.\*;auth,authpriv\.none/*\.*;auth,authpriv\.none,local7\.none/' /etc/rsyslog.d/50-default.conf
+
+        echo "[*] Installing redis configuration"
+        osSudo "${ROOT_USER}" install -c -m 644 "${MEMPOOL_HOME}/${MEMPOOL_REPO_NAME}/production/linux/redis.conf" /etc/redis/redis.conf
     ;;
 esac
 
@@ -1450,9 +1488,6 @@ if [ "${BISQ_INSTALL}" = ON ];then
             echo "[*] Cloning Bisq top-level repo"
             osSudo "${BISQ_USER}" git clone --branch "${BISQ_REPO_BRANCH}" "${BISQ_REPO_URL}" "${BISQ_HOME}/${BISQ_REPO_NAME}"
 
-            echo "[*] Installing OpenJDK from Bisq install_java_linux.sh script"
-            osSudo "${ROOT_USER}" "${BISQ_HOME}/${BISQ_REPO_NAME}/scripts/install_java_linux.sh"
-
             echo "[*] Checking out Bisq ${BISQ_LATEST_RELEASE}"
             osSudo "${BISQ_USER}" sh -c "cd ${BISQ_HOME}/${BISQ_REPO_NAME} && git checkout ${BISQ_LATEST_RELEASE}"
 
@@ -1473,9 +1508,13 @@ if [ "${BISQ_INSTALL}" = ON ];then
         ;;
 
         Debian)
+            echo "[*] Installing Bisq service file"
             osSudo "${ROOT_USER}" install -c -o "${ROOT_USER}" -g "${ROOT_GROUP}" -m 644 "${BISQ_HOME}/${BISQ_REPO_NAME}/seednode/bisq.service" "${DEBIAN_SERVICE_HOME}/bisq.service"
-            osSudo "${ROOT_USER}" sed -i.orig "s/#Requires=bitcoin.service/Requires=bitcoin.service/" "${DEBIAN_SERVICE_HOME}/bisq.service"
-            osSudo "${ROOT_USER}" sed -i.orig "s/#BindsTo=bitcoin.service/BindsTo=bitcoin.service/" "${DEBIAN_SERVICE_HOME}/bisq.service"
+            if [ "${BITCOIN_INSTALL}" = ON ];then
+                osSudo "${ROOT_USER}" sed -i.orig "s/After=network.target/After=bitcoin.service/" "${DEBIAN_SERVICE_HOME}/bisq.service"
+                osSudo "${ROOT_USER}" sed -i.orig "s/#Requires=bitcoin.service/Requires=bitcoin.service/" "${DEBIAN_SERVICE_HOME}/bisq.service"
+                osSudo "${ROOT_USER}" sed -i.orig "s/#BindsTo=bitcoin.service/BindsTo=bitcoin.service/" "${DEBIAN_SERVICE_HOME}/bisq.service"
+            fi
             osSudo "${ROOT_USER}" sed -i.orig "s/__BISQ_REPO_NAME__/${BISQ_REPO_NAME}/" "${DEBIAN_SERVICE_HOME}/bisq.service"
             osSudo "${ROOT_USER}" sed -i.orig "s!__BISQ_HOME__!${BISQ_HOME}!" "${DEBIAN_SERVICE_HOME}/bisq.service"
 
@@ -1483,18 +1522,20 @@ if [ "${BISQ_INSTALL}" = ON ];then
             osSudo "${ROOT_USER}" install -c -o "${ROOT_USER}" -g "${ROOT_GROUP}" -m 644 "${BISQ_HOME}/${BISQ_REPO_NAME}/seednode/bisq.env" "${DEBIAN_ENV_HOME}/bisq.env"
             osSudo "${ROOT_USER}" sed -i.orig "s!__BISQ_APP_NAME__!${BISQ_APP_NAME}!" "${DEBIAN_ENV_HOME}/bisq.env"
             osSudo "${ROOT_USER}" sed -i.orig "s!__BISQ_HOME__!${BISQ_HOME}!" "${DEBIAN_ENV_HOME}/bisq.env"
-
-            echo "[*] Configuring Bisq environment file with Bitcoin RPC credentials"
             osSudo "${ROOT_USER}" sed -i.orig "s/__BITCOIN_P2P_HOST__/${BITCOIN_MAINNET_P2P_HOST}/" "${DEBIAN_ENV_HOME}/bisq.env"
             osSudo "${ROOT_USER}" sed -i.orig "s/__BITCOIN_P2P_PORT__/${BITCOIN_MAINNET_P2P_PORT}/" "${DEBIAN_ENV_HOME}/bisq.env"
             osSudo "${ROOT_USER}" sed -i.orig "s/__BITCOIN_RPC_HOST__/${BITCOIN_MAINNET_RPC_HOST}/" "${DEBIAN_ENV_HOME}/bisq.env"
             osSudo "${ROOT_USER}" sed -i.orig "s/__BITCOIN_RPC_PORT__/${BITCOIN_MAINNET_RPC_PORT}/" "${DEBIAN_ENV_HOME}/bisq.env"
             osSudo "${ROOT_USER}" sed -i.orig "s/__BITCOIN_RPC_USER__/${BITCOIN_RPC_USER}/" "${DEBIAN_ENV_HOME}/bisq.env"
             osSudo "${ROOT_USER}" sed -i.orig "s/__BITCOIN_RPC_PASS__/${BITCOIN_RPC_PASS}/" "${DEBIAN_ENV_HOME}/bisq.env"
+            osSudo "${ROOT_USER}" sed -i.orig "s/BISQ_DUMP_BLOCKCHAIN=false/BISQ_DUMP_BLOCKCHAIN=true/" "${DEBIAN_ENV_HOME}/bisq.env"
+            osSudo "${ROOT_USER}" sed -i.orig "s/BISQ_DUMP_STATISTICS=false/BISQ_DUMP_STATISTICS=true/" "${DEBIAN_ENV_HOME}/bisq.env"
 
-            #echo "[*] Updating Bitcoin configuration for Bisq"
-            #osSudo "${ROOT_USER}" sed -i.orig "s/#blocknotify/blocknotify/" "${BITCOIN_HOME}/bitcoin.conf"
-            #osSudo "${BITCOIN_USER}" install -c -o "${BITCOIN_USER}" -g "${BITCOIN_GROUP}" -m 755 "${BISQ_HOME}/${BISQ_REPO_NAME}/seednode/blocknotify.sh" "${BITCOIN_HOME}/blocknotify.sh"
+            if [ "${BITCOIN_INSTALL}" = ON ];then
+                echo "[*] Updating Bitcoin configuration for Bisq"
+                osSudo "${ROOT_USER}" sed -i.orig "1iblocknotify=${BITCOIN_HOME}/blocknotify.sh %s" "${BITCOIN_HOME}/bitcoin.conf"
+                osSudo "${BITCOIN_USER}" install -c -o "${BITCOIN_USER}" -g "${BITCOIN_GROUP}" -m 755 "${BISQ_HOME}/${BISQ_REPO_NAME}/seednode/blocknotify.sh" "${BITCOIN_HOME}/blocknotify.sh"
+            fi
         ;;
 
     esac
@@ -1506,7 +1547,7 @@ fi
 
 if [ "${UNFURL_INSTALL}" = ON ];then
 
-    echo "[*] Insalling Unfurl source"
+    echo "[*] Installing Unfurl source"
     case $OS in
 
         FreeBSD)
@@ -1676,8 +1717,8 @@ fi
 # Bitcoin instance for Liquid Testnet #
 #######################################
 
-if [ "${ELEMENTS_LIQUID_ENABLE}" = ON ];then
-    echo "[*] Installing Bitcoin Liquid service"
+if [ "${ELEMENTS_LIQUIDTESTNET_ENABLE}" = ON ];then
+    echo "[*] Installing Bitcoin Liquid Testnet service"
     case $OS in
 
         FreeBSD)
@@ -1994,13 +2035,25 @@ echo "[*] Setting permissions for electrs sockets"
 case $OS in
 
     FreeBSD)
-        setfacl -m "user:bitcoin:full_set:f:allow,user:mempool:full_set:f:allow,user:www:full_set:f:allow,everyone@::f:allow" "${BITCOIN_HOME}/socket"
-        chown "${BITCOIN_USER}:${BITCOIN_GROUP}" "${BITCOIN_HOME}/socket"
-        setfacl -m "user:elements:full_set:f:allow,user:mempool:full_set:f:allow,user:www:full_set:f:allow,everyone@::f:allow" "${ELEMENTS_HOME}/socket"
-        chown "${ELEMENTS_USER}:${ELEMENTS_GROUP}" "${ELEMENTS_HOME}/socket"
+        if [ "${BITCOIN_INSTALL}" = ON ];then
+            setfacl -m "user:bitcoin:full_set:f:allow,user:mempool:full_set:f:allow,user:www:full_set:f:allow,everyone@::f:allow" "${BITCOIN_HOME}/socket"
+            chown "${BITCOIN_USER}:${BITCOIN_GROUP}" "${BITCOIN_HOME}/socket"
+        fi
+        if [ "${ELEMENTS_INSTALL}" = ON ];then
+            setfacl -m "user:elements:full_set:f:allow,user:mempool:full_set:f:allow,user:www:full_set:f:allow,everyone@::f:allow" "${ELEMENTS_HOME}/socket"
+            chown "${ELEMENTS_USER}:${ELEMENTS_GROUP}" "${ELEMENTS_HOME}/socket"
+        fi
     ;;
 
     Debian)
+        if [ "${BITCOIN_INSTALL}" = ON ];then
+            setfacl -Rdm "u:bitcoin:rwx,u:mempool:rwx,u:www-data:rwx,o::rw-" "${BITCOIN_HOME}/socket"
+            chown "${BITCOIN_USER}:${BITCOIN_GROUP}" "${BITCOIN_HOME}/socket"
+        fi
+        if [ "${ELEMENTS_INSTALL}" = ON ];then
+            setfacl -Rdm "u:elements:rwx,u:mempool:rwx,u:www-data:rwx,o::rw-" "${ELEMENTS_HOME}/socket"
+            chown "${ELEMENTS_USER}:${ELEMENTS_GROUP}" "${ELEMENTS_HOME}/socket"
+        fi
     ;;
 esac
 

@@ -85,7 +85,7 @@
   "DATABASE": {
     "ENABLED": true,
     "HOST": "127.0.0.1",
-    "SOCKET": "/var/run/mysql/mysql.sock",
+    "SOCKET": "__DB_SOCKET__",
     "USERNAME": "__MEMPOOL_MAINNET_USER__",
     "PASSWORD": "__MEMPOOL_MAINNET_PASS__",
     "DATABASE": "mempool"
@@ -144,7 +144,7 @@
   },
   "REDIS": {
     "ENABLED": true,
-    "UNIX_SOCKET_PATH": "/tmp/redis.sock",
+    "UNIX_SOCKET_PATH": "__REDIS_SOCKET__",
     "BATCH_QUERY_BASE_SIZE": 5000
   },
   "MEMPOOL_SERVICES": {

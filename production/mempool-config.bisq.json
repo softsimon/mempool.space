@@ -22,7 +22,7 @@
   "DATABASE": {
     "ENABLED": false,
     "HOST": "127.0.0.1",
-    "SOCKET": "/var/run/mysql/mysql.sock",
+    "SOCKET": "__DB_SOCKET__",
     "USERNAME": "__MEMPOOL_BISQ_USER__",
     "PASSWORD": "__MEMPOOL_BISQ_PASS__",
     "DATABASE": "mempool_bisq"
