@@ -35,7 +35,7 @@ jobs:
       - name: Install ${{ steps.gettoolchain.outputs.toolchain }} Rust toolchain
         # Latest version available on this commit is 1.71.1
         # Commit date is Aug 3, 2023
-        uses: dtolnay/rust-toolchain@d8352f6b1d2e870bc5716e7a6d9b65c4cc244a1a
+        uses: dtolnay/rust-toolchain@a54c7afa936fefeb4456b2dd8068152669aa8203
         with:
           toolchain: ${{ steps.gettoolchain.outputs.toolchain }}
 
