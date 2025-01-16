@@ -5,3 +5,6 @@
 @reboot sleep 10 ; screen -dmS testnet /bitcoin/electrs/start testnet
 @reboot sleep 10 ; screen -dmS testnet4 /bitcoin/electrs/start testnet4
 @reboot sleep 10 ; screen -dmS signet /bitcoin/electrs/start signet
+
+# hourly dumping of the mainnet mempool to disk
+30 * * * * bitcoin-cli savemempool >/dev/null 2>&1
