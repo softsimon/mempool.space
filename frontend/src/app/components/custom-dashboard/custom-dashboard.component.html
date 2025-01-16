@@ -307,6 +307,20 @@
             </div>
           </div>
         }
+        @case ('simpleproof') {
+          <div class="col" style="max-height: 410px" [style.order]="isMobile && widget.mobileOrder || 8">
+            <div class="card">
+              <div class="card-body">
+                <a class="title-link" href="" [routerLink]="['/sp/verified' | relativeUrl]">
+                  <h5 class="card-title d-inline" i18n="dashboard.recent-blocks">{{ widget.props?.label }}</h5>
+                  <span>&nbsp;</span>
+                  <fa-icon [icon]="['fas', 'external-link-alt']" [fixedWidth]="true" style="vertical-align: text-top; font-size: 13px; color: var(--title-fg)"></fa-icon>
+                </a>
+                <app-simpleproof-widget [label]="widget.props.label" [key]="widget.props.key" [widget]="true"></app-simpleproof-widget>
+              </div>
+            </div>
+          </div>
+        }
       }
     }
   </div>

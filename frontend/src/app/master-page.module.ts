@@ -13,6 +13,7 @@ import { RbfList } from '@components/rbf-list/rbf-list.component';
 import { ServerHealthComponent } from '@components/server-health/server-health.component';
 import { ServerStatusComponent } from '@components/server-health/server-status.component';
 import { FaucetComponent } from '@components/faucet/faucet.component'
+import { SimpleProofWidgetComponent } from './components/simpleproof-widget/simpleproof-widget.component';
 
 const browserWindow = window || {};
 // @ts-ignore
@@ -128,6 +129,13 @@ if (window['__env']?.OFFICIAL_MEMPOOL_SPACE) {
       }]
     })
   }
+}
+
+if (window['__env']?.customize?.dashboard.widgets?.some(w => w.component ==='simpleproof')) {
+  routes[0].children.push({
+    path: 'sp/verified',
+    component: SimpleProofWidgetComponent,
+  });
 }
 
 @NgModule({

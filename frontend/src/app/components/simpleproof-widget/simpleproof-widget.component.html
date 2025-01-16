@@ -1,0 +1,75 @@
+<div class="container-xl" style="min-height: 335px" [ngClass]="{'widget': widget, 'full-height': !widget}">
+  <div *ngIf="!widget" class="float-left" style="display: flex; width: 100%; align-items: center;">
+    <h1>{{ label }}</h1>
+    <div *ngIf="!widget && isLoading" class="spinner-border" role="status"></div>
+  </div>
+
+  <div class="clearfix"></div>
+
+  @if (isLoading) {
+    loading!
+    <div class="spinner-wrapper">
+      <div class="ml-2 spinner-border text-light" style="width: 25px; height: 25px"></div>
+    </div>
+  } @else if (error || !verified.length) {
+    <div class="error-wrapper">
+      <span>temporarily unavailable</span>
+    </div>
+  } @else {
+    <div style="min-height: 295px">
+      <table class="table table-borderless" [class.table-fixed]="widget">
+        <thead>
+          <th class="filename text-left" [ngClass]="{'widget': widget}" i18n="simpleproof.filename">Filename</th>
+          <th class="hash text-left" [ngClass]="{'widget': widget}" i18n="simpleproof.hash">Hash</th>
+          <th class="verified text-right" [ngClass]="{'widget': widget}" i18n="simpleproof.verified">Verified</th>
+          <th class="proof text-right" [ngClass]="{'widget': widget}" i18n="simpleproof.proof">Proof</th>
+        </thead>
+        <tbody *ngIf="verifiedPage; else skeleton" [style]="isLoading ? 'opacity: 0.75' : ''">
+          <tr *ngFor="let item of verifiedPage">
+            <td class="filename text-left" [class]="widget ? 'widget' : ''">{{ item.file_name }}</td>
+            <td class="hash text-left" [class]="widget ? 'widget' : ''">{{ item.sha256 }}</td>
+            <td class="verified text-right" [class]="widget ? 'widget' : ''">
+              <app-timestamp [unixTime]="item.block_time" [customFormat]="'yyyy-MM-dd'" [hideTimeSince]="true"></app-timestamp>
+            </td>
+            <td class="proof text-right" [class]="widget ? 'widget' : ''">
+              <a [href]="item.sanitized_url" target="_blank" class="badge badge-primary badge-verify">
+                <span class="icon">
+                  <img class="icon-img" src="/resources/sp.svg">
+                </span>
+                <span i18n="simpleproof.verify">Verify</span>
+              </a>
+            </td>
+          </tr>
+        </tbody>
+        <ng-template #skeleton>
+          <tbody>
+            <tr *ngFor="let item of [].constructor(itemsPerPage)">
+              <td class="filename text-left" [ngClass]="{'widget': widget}">
+                <span class="skeleton-loader" style="max-width: 75px"></span>
+              </td>
+              <td class="hash text-left" [ngClass]="{'widget': widget}">
+                <span class="skeleton-loader" style="max-width: 75px"></span>
+              </td>
+              <td class="verified text-right" [ngClass]="{'widget': widget}">
+                <span class="skeleton-loader" style="max-width: 75px"></span>
+              </td>
+              <td class="proof text-right" [ngClass]="{'widget': widget}">
+                <span class="skeleton-loader" style="max-width: 75px"></span>
+              </td>
+            </tr>
+          </tbody>
+        </ng-template>
+      </table>
+
+      <ngb-pagination *ngIf="!widget" class="pagination-container float-right mt-2" [class]="isLoading ? 'disabled' : ''"
+        [collectionSize]="verified.length" [rotate]="true" [maxSize]="paginationMaxSize" [pageSize]="itemsPerPage" [(page)]="page"
+        (pageChange)="pageChange(page)" [boundaryLinks]="true" [ellipses]="false">
+      </ngb-pagination>
+
+      <ng-template [ngIf]="!widget">
+        <div class="clearfix"></div>
+        <br>
+      </ng-template>
+    </div>
+  }
+</div>

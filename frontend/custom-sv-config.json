@@ -38,7 +38,12 @@
         }
       },
       {
-        "component": "blocks"
+        "component": "simpleproof",
+        "mobileOrder": 6,
+        "props": {
+          "label": "Executive Decrees",
+          "key": "el_salvador_decretos"
+        }
       },
       {
         "component": "addressTransactions",

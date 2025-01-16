@@ -1,0 +1,114 @@
+.spinner-wrapper, .error-wrapper {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner-border {
+  height: 25px;
+  width: 25px;
+  margin-top: -10px;
+  margin-left: -13px;
+  flex-shrink: 0;
+}
+
+.container-xl {
+  max-width: 1400px;
+}
+.container-xl.widget {
+  padding-left: 0px;
+  padding-bottom: 0px;
+  padding-right: 0px;
+}
+.container-xl.legacy {
+  max-width: 1140px;
+}
+
+.container {
+  max-width: 100%;
+}
+
+tr, td, th {
+  border: 0px;
+  padding-top: 0.71rem !important;
+  padding-bottom: 0.7rem !important;
+}
+
+.clear-link {
+  color: white;
+}
+
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.progress {
+  background-color: var(--secondary);
+}
+
+.filename {
+  width: 50%;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hash {
+  width: 25%;
+  max-width: 700px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+td.hash {
+  font-family: monospace;
+}
+.widget .hash {
+  display: none;
+}
+@media (max-width: 1200px) {
+  .hash {
+    display: none;
+  }
+}
+
+.verified {
+  width: 25%;
+}
+td.verified {
+  color: var(--tertiary);
+}
+
+.proof {
+  width: 25%;
+}
+
+.badge-verify {
+  font-size: 1.05em;
+  font-weight: normal;
+  background: var(--nav-bg);
+  color: white;
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+
+  .icon {
+    margin: -0.25em;
+    margin-right: 0.5em;
+
+    .icon-img {
+      width: 16px;
+      font-size: 16px;
+    }
+  }
+}
