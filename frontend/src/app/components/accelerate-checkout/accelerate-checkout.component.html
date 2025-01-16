@@ -1,10 +1,18 @@
 <div class="box card w-100" style="background: var(--box-bg)" id=acceleratePreviewAnchor>
   @if (accelerateError) {
-    <div class="row mb-1 text-center">
-      <div class="col-sm">
-        <h1 style="font-size: larger;" i18n="accelerator.sorry-error-title">Sorry, something went wrong!</h1>
+    @if (accelerateError.includes('Payment declined')) {
+      <div class="row mb-1 text-center">
+        <div class="col-sm">
+          <h1 style="font-size: larger;">{{ accelerateError }}</h1>
+        </div>
       </div>
-    </div>
+    } @else {
+      <div class="row mb-1 text-center">
+        <div class="col-sm">
+          <h1 style="font-size: larger;" i18n="accelerator.sorry-error-title">Sorry, something went wrong!</h1>
+        </div>
+      </div>
+    }
     <div class="row text-center mt-1">
       <div class="col-sm">
         <div class="d-flex flex-row justify-content-center align-items-center">

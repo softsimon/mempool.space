@@ -540,7 +540,7 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
                       // Reset everything by reloading the page :D, can be improved
                       const urlParams = new URLSearchParams(window.location.search);
                       window.location.assign(window.location.toString().replace(`?cash_request_id=${urlParams.get('cash_request_id')}`, ``));
-                    }, 3000);
+                    }, 10000);
                   }
                 }
               });
@@ -648,7 +648,7 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
                     // Reset everything by reloading the page :D, can be improved
                     const urlParams = new URLSearchParams(window.location.search);
                     window.location.assign(window.location.toString().replace(`?cash_request_id=${urlParams.get('cash_request_id')}`, ``));
-                  }, 3000);
+                  }, 10000);
                 }
               }
             });
@@ -742,7 +742,7 @@ export class AccelerateCheckout implements OnInit, OnDestroy {
                     // Reset everything by reloading the page :D, can be improved
                     const urlParams = new URLSearchParams(window.location.search);
                     window.location.assign(window.location.toString().replace(`?cash_request_id=${urlParams.get('cash_request_id')}`, ``));
-                  }, 3000);
+                  }, 10000);
                 }
               }
             });
