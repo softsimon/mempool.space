@@ -357,9 +357,9 @@
           <app-active-acceleration-box [miningStats]="miningStats" [pools]="estimate.pools" [chartOnly]="true" class="ml-2"></app-active-acceleration-box>
         </div>
       </div>
-      <div class="payment-area mt-2 p-2" style="font-size: 14px;">
+      <div class="payment-area" style="font-size: 14px;">
         <div class="row text-center justify-content-center mx-2">
-          <p i18n="accelerator.payment-to-mempool-space">Payment to mempool.space for acceleration of txid <a [routerLink]="'/tx/' + tx.txid" target="_blank">{{ tx.txid.substr(0, 10) }}..{{ tx.txid.substr(-10) }}</a></p>
+          <span i18n="accelerator.payment-to-mempool-space">Payment to mempool.space for acceleration of txid <a [routerLink]="'/tx/' + tx.txid" target="_blank">{{ tx.txid.substr(0, 10) }}..{{ tx.txid.substr(-10) }}</a></span>
         </div>
         @if (canPayWithBalance || !(canPayWithBitcoin || canPayWithCashapp || canPayWithApplePay || canPayWithGooglePay)) {
           <div class="row">
@@ -378,9 +378,12 @@
                   <p><ng-container i18n="transaction.pay|Pay button label">Pay</ng-container>&nbsp;<span><small style="font-family: monospace;">{{ ((invoice.btcDue * 100_000_000) || cost) | number }}</small>&nbsp;<span class="symbol" i18n="shared.sats">sats</span></span></p>
                   <app-bitcoin-invoice style="width: 100%;" [invoice]="invoice" [minimal]="true" (completed)="bitcoinPaymentCompleted()"></app-bitcoin-invoice>
                 } @else if (btcpayInvoiceFailed) {
-                  <p i18n="accelerator.failed-to-load-invoice">Failed to load invoice</p>
-                  <div class="d-flex flex-column align-items-center justify-content-center" style="width: 100%; height: 292px;">
-                    <fa-icon style="font-size: 24px; color: var(--red)" [icon]="['fas', 'circle-xmark']"></fa-icon>
+                  <div class="btcpay-invoice">
+                    <fa-icon style="font-size: 20px; color: var(--red)" [icon]="['fas', 'circle-xmark']"></fa-icon>
+                    <span i18n="accelerator.failed-to-load-invoice">Failed to load invoice</span>
+                    @if (!loadingBtcpayInvoice) {
+                      <button class="btn btn-sm btn-secondary mt-0 mt-md-1" (click)="requestBTCPayInvoice()">Retry ↻</button>
+                    }
                   </div>
                 } @else {
                   <p i18n="accelerator.loading-invoice">Loading invoice...</p>
@@ -391,7 +394,7 @@
               </div>
               @if (canPayWithCashapp || canPayWithApplePay || canPayWithGooglePay) {
                 <div class="col-sm text-center flex-grow-0  d-flex flex-column justify-content-center align-items-center">
-                  <p class="text-nowrap">&mdash;<span i18n="or">OR</span>&mdash;</p>
+                  <p class="text-nowrap">&mdash;&mdash;<span i18n="or"> OR </span>&mdash;&mdash;</p>
                 </div>
               }
             }
