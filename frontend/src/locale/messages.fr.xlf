@@ -9847,7 +9847,7 @@
       </trans-unit>
       <trans-unit id="8e623d3cfecb7c560c114390db53c1f430ffd0de" datatype="html">
         <source><x id="INTERPOLATION" equiv-text="{{ i }}"/> confirmation</source>
-        <target><x id="INTERPOLATION" equiv-text="{{ i }}"/>confirmation</target>
+        <target><x id="INTERPOLATION" equiv-text="{{ i }}"/> confirmation</target>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/shared/components/confirmations/confirmations.component.html</context>
           <context context-type="linenumber">4</context>
