@@ -26,6 +26,7 @@ export const MempoolErrors = {
   'unauthorized': `You are not authorized to do this`,
   'faucet_too_soon': `You cannot request any more coins right now. Try again later.`,
   'faucet_not_available': `The faucet is not available right now. Try again later.`,
+  'faucet_not_available_no_utxo': `The faucet is not available right now. Please try again once a new block has been mined.`,
   'faucet_maximum_reached': `You are not allowed to request more coins`,
   'faucet_address_not_allowed': `You cannot use this address`,
   'faucet_below_minimum': `Requested amount is too small`,
