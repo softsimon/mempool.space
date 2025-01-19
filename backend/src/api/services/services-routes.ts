@@ -7,6 +7,7 @@ class ServicesRoutes {
   public initRoutes(app: Application): void {
     app
       .get(config.MEMPOOL.API_URL_PREFIX + 'wallet/:walletId', this.$getWallet)
+      .get(config.MEMPOOL.API_URL_PREFIX + 'services/custom/config', this.$getCustomConfig)
     ;
   }
 
@@ -21,6 +22,11 @@ class ServicesRoutes {
     } catch (e) {
       handleError(req, res, 500, 'Failed to get wallet');
     }
+  }
+
+  // serve a blank custom config file by default
+  private async $getCustomConfig(req: Request, res: Response): Promise<void> {
+    res.status(200).contentType('application/javascript').send('');
   }
 }
 

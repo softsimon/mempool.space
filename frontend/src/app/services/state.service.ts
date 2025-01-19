@@ -22,6 +22,7 @@ export interface MarkBlockState {
 export interface ILoadingIndicators { [name: string]: number; }
 
 export interface Customization {
+  domains: string[];
   theme: string;
   enterprise?: string;
   branding: {
@@ -33,6 +34,16 @@ export interface Customization {
     footer_img?: string;
     rounded_corner: boolean;
   },
+  meta: {
+    title: string;
+    description: string;
+    image: {
+      src: string;
+      type: string;
+      width: string;
+      height: string;
+    };
+  };
   dashboard: {
     widgets: {
       component: string;

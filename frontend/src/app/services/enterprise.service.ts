@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Inject, Injectable } from '@angular/core';
 import { ApiService } from '@app/services/api.service';
 import { SeoService } from '@app/services/seo.service';
-import { StateService } from '@app/services/state.service';
+import { Customization, StateService } from '@app/services/state.service';
 import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 
@@ -51,6 +51,8 @@ export class EnterpriseService {
     if (this.stateService.env.customize?.branding) {
       const info = this.stateService.env.customize?.branding;
       this.insertMatomo(info.site_id);
+      this.setFavicons(this.stateService.env.customize);
+      this.seoService.setCustomMeta(this.stateService.env.customize);
       this.seoService.setEnterpriseTitle(info.title, true);
       this.info$.next(info);
     } else {
@@ -65,6 +67,50 @@ export class EnterpriseService {
         }
       });
     }
+  }
+
+  setFavicons(customize: Customization): void {
+    const enterprise = customize.enterprise;
+    const head = this.document.getElementsByTagName('head')[0];
+
+    const faviconLinks = [
+      {
+        rel: 'apple-touch-icon',
+        sizes: '180x180',
+        href: `/resources/${enterprise}/favicons/apple-touch-icon.png`
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '32x32',
+        href: `/resources/${enterprise}/favicons/favicon-32x32.png`
+      },
+      {
+        rel: 'icon',
+        type: 'image/png',
+        sizes: '16x16',
+        href: `/resources/${enterprise}/favicons/favicon-16x16.png`
+      },
+      {
+        rel: 'manifest',
+        href: `/resources/${enterprise}/favicons/site.webmanifest`
+      },
+      {
+        rel: 'shortcut icon',
+        href: `/resources/${enterprise}/favicons/favicon.ico`
+      }
+    ];
+
+    faviconLinks.forEach(linkInfo => {
+      let link = this.document.querySelector(`link[rel="${linkInfo.rel}"]${linkInfo.sizes ? `[sizes="${linkInfo.sizes}"]` : ''}`) as HTMLLinkElement;
+      if (!link) {
+        link = this.document.createElement('link');
+        head.appendChild(link);
+      }
+      Object.entries(linkInfo).forEach(([attr, value]) => {
+        link.setAttribute(attr, value);
+      });
+    });
   }
 
   insertMatomo(siteId?: number): void {

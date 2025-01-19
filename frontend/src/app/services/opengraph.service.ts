@@ -12,6 +12,9 @@ import { LanguageService } from '@app/services/language.service';
 export class OpenGraphService {
   network = '';
   defaultImageUrl = '';
+  defaultImageType = 'image/png';
+  defaultImageWidth = '1000';
+  defaultImageHeight = '500';
   previewLoadingEvents = {};
   previewLoadingCount = 0;
 
@@ -25,12 +28,17 @@ export class OpenGraphService {
   ) {
     // save og:image tag from original template
     const initialOgImageTag = metaService.getTag("property='og:image'");
-    this.defaultImageUrl = initialOgImageTag?.content || 'https://mempool.space/resources/previews/mempool-space-preview.jpg';
+    this.defaultImageUrl = (this.stateService.env.customize?.meta?.image?.src ? this.stateService.env.customize.meta.image.src : initialOgImageTag?.content) || 'https://mempool.space/resources/previews/mempool-space-preview.jpg';
+    this.defaultImageType = (this.stateService.env.customize?.meta?.image?.type ? this.stateService.env.customize.meta.image.type : 'image/png');
+    this.defaultImageWidth = (this.stateService.env.customize?.meta?.image?.width ? this.stateService.env.customize.meta.image.width : '1000');
+    this.defaultImageHeight = (this.stateService.env.customize?.meta?.image?.height ? this.stateService.env.customize.meta.image.height : '500');
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       map(() => this.activatedRoute),
       map(route => {
-        while (route.firstChild) route = route.firstChild;
+        while (route.firstChild) {
+          route = route.firstChild;
+        }
         return route;
       }),
       filter(route => route.outlet === 'primary'),
@@ -45,7 +53,7 @@ export class OpenGraphService {
 
     // expose routing method to global scope, so we can access it from the unfurler
     window['ogService'] = {
-      loadPage: (path) => { return this.loadPage(path) }
+      loadPage: (path) => { return this.loadPage(path); }
     };
   }
 
@@ -62,9 +70,9 @@ export class OpenGraphService {
   clearOgImage() {
     this.metaService.updateTag({ property: 'og:image', content: this.defaultImageUrl });
     this.metaService.updateTag({ name: 'twitter:image', content: this.defaultImageUrl });
-    this.metaService.updateTag({ property: 'og:image:type', content: 'image/png' });
-    this.metaService.updateTag({ property: 'og:image:width', content: '1000' });
-    this.metaService.updateTag({ property: 'og:image:height', content: '500' });
+    this.metaService.updateTag({ property: 'og:image:type', content: this.defaultImageType });
+    this.metaService.updateTag({ property: 'og:image:width', content: this.defaultImageWidth });
+    this.metaService.updateTag({ property: 'og:image:height', content: this.defaultImageHeight });
   }
 
   setManualOgImage(imageFilename) {

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { filter, map, switchMap } from 'rxjs';
-import { StateService } from '@app/services/state.service';
+import { Customization, StateService } from '@app/services/state.service';
 
 @Injectable({
   providedIn: 'root'
@@ -23,13 +23,17 @@ export class SeoService {
     private activatedRoute: ActivatedRoute,
   ) {
     // save original meta tags
-    this.baseDescription = metaService.getTag('name=\'description\'')?.content || this.baseDescription;
-    this.baseTitle = titleService.getTitle()?.split(' - ')?.[0] || this.baseTitle;
-    try {
-      const canonicalUrl = new URL(this.canonicalLink?.href || '');
-      this.baseDomain = canonicalUrl?.host;
-    } catch (e) {
-      // leave as default
+    this.baseDescription = this.stateService.env.customize?.meta?.description || metaService.getTag('name=\'description\'')?.content || this.baseDescription;
+    this.baseTitle = this.stateService.env.customize?.meta?.title || titleService.getTitle()?.split(' - ')?.[0] || this.baseTitle;
+    if (this.stateService.env.customize?.domains?.length) {
+      this.baseDomain = this.stateService.env.customize.domains[0];
+    } else {
+      try {
+        const canonicalUrl = new URL(this.canonicalLink?.href || '');
+        this.baseDomain = canonicalUrl?.host;
+      } catch (e) {
+        // leave as default
+      }
     }
 
     this.stateService.networkChanged$.subscribe((network) => this.network = network);
@@ -68,6 +72,22 @@ export class SeoService {
       this.baseTitle = title + ' - ' + this.baseTitle;
     }
     this.resetTitle();
+  }
+
+  setCustomMeta(customize: Customization) {
+    if (!customize.meta) {
+      return;
+    }
+    this.metaService.updateTag({ name: 'description', content: customize.meta.description});
+    this.metaService.updateTag({ name: 'twitter:description', content: customize.meta.description});
+    this.metaService.updateTag({ property: 'og:description', content: customize.meta.description});
+    this.metaService.updateTag({ name: 'twitter:image', content: customize.meta.image.src});
+    this.metaService.updateTag({ property: 'og:image', content: customize.meta.image.src});
+    this.metaService.updateTag({ property: 'og:image:type', content: customize.meta.image.type});
+    this.metaService.updateTag({ property: 'og:image:width', content: customize.meta.image.width});
+    this.metaService.updateTag({ property: 'og:image:height', content: customize.meta.image.height});
+    const domain = customize.domains?.[0] || window.location.hostname;
+    this.metaService.updateTag({ name: 'twitter:domain', content: domain});
   }
 
   setDescription(newDescription: string): void {
