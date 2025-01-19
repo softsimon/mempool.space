@@ -7,7 +7,7 @@ import { faFilter, faAngleDown, faAngleUp, faAngleRight, faAngleLeft, faBolt, fa
   faFileAlt, faRedoAlt, faArrowAltCircleRight, faExternalLinkAlt, faBook, faListUl, faDownload, faQrcode, faArrowRightArrowLeft, faArrowsRotate, faCircleLeft,
   faFastForward, faWallet, faUserClock, faWrench, faUserFriends, faQuestionCircle, faHistory, faSignOutAlt, faKey, faSuitcase, faIdCardAlt, faNetworkWired, faUserCheck,
   faCircleCheck, faUserCircle, faCheck, faRocket, faScaleBalanced, faHourglassStart, faHourglassHalf, faHourglassEnd, faWandMagicSparkles, faFaucetDrip, faTimeline,
-  faCircleXmark, faCalendarCheck, faMoneyBillTrendUp, faRobot } from '@fortawesome/free-solid-svg-icons';
+  faCircleXmark, faCalendarCheck, faMoneyBillTrendUp, faRobot, faCreditCard } from '@fortawesome/free-solid-svg-icons';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 import { MenuComponent } from '@components/menu/menu.component';
 import { PreviewTitleComponent } from '@components/master-page-preview/preview-title.component';
@@ -459,5 +459,6 @@ export class SharedModule {
     library.addIcons(faCalendarCheck);
     library.addIcons(faMoneyBillTrendUp);
     library.addIcons(faRobot);
+    library.addIcons(faCreditCard);
   }
 }

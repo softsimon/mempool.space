@@ -389,13 +389,13 @@
                   </div>
                 }
               </div>
-              @if (canPayWithCashapp || canPayWithApplePay || canPayWithGooglePay) {
+              @if (canPayWithCashapp || canPayWithApplePay || canPayWithGooglePay || canPayWithCardOnFile) {
                 <div class="col-sm text-center flex-grow-0  d-flex flex-column justify-content-center align-items-center">
                   <p class="text-nowrap">&mdash;<span i18n="or">OR</span>&mdash;</p>
                 </div>
               }
             }
-            @if (canPayWithCashapp || canPayWithApplePay || canPayWithGooglePay) {
+            @if (canPayWithCashapp || canPayWithApplePay || canPayWithGooglePay || canPayWithCardOnFile) {
               <div class="col-sm text-center d-flex flex-column justify-content-center align-items-center">
                 <p><ng-container i18n="transaction.pay|Pay button label">Pay</ng-container>&nbsp;<app-fiat [value]="cost"></app-fiat> with</p>
                 @if (canPayWithCashapp) {
@@ -411,6 +411,13 @@
                   @if (canPayWithCashapp || canPayWithApplePay) { <span class="mt-1 mb-1"></span> }
                   <div class="paymentMethod mx-2" style="width: 200px; height: 55px" (click)="moveToStep('googlepay')">
                     <img src="/resources/google-pay.png" height=37>
+                  </div>
+                }
+                @if (canPayWithCardOnFile) {
+                  @if (canPayWithCashapp || canPayWithApplePay || canPayWithGooglePay) { <span class="mt-1 mb-1"></span> }
+                  <div class="paymentMethod mx-2 d-flex justify-content-center align-items-center" style="width: 200px; height: 55px" (click)="moveToStep('cardonfile')">
+                    <fa-icon style="font-size: 24px; color: white" [icon]="['fas', 'credit-card']"></fa-icon>
+                    <span class="ml-2" style="font-size: 22px">{{ estimate?.availablePaymentMethods?.cardOnFile?.card?.brand }} {{ estimate?.availablePaymentMethods?.cardOnFile?.card?.last_4 }}</span>
                   </div>
                 }
               </div>
@@ -435,7 +442,7 @@
         <button type="button" class="mt-1 btn btn-secondary btn-sm rounded-pill align-self-center" style="width: 200px" (click)="moveToStep('summary')" i18n="go-back">Go back</button>
       </div>
     </div>
-  } @else if (step === 'cashapp' || step === 'applepay' || step === 'googlepay') {
+  } @else if (step === 'cashapp' || step === 'applepay' || step === 'googlepay' || step === 'cardonfile') {
     <!-- Show checkout page -->
     <div class="row mb-md-1 text-center" id="confirm-title">
       <div class="col-sm" id="confirm-payment-title">
@@ -451,7 +458,7 @@
       </div>
     </div>
 
-    @if (step === 'cashapp' && !loadingCashapp || step === 'applepay' && !loadingApplePay || step === 'googlepay' && !loadingGooglePay) {
+    @if (step === 'cashapp' && !loadingCashapp || step === 'applepay' && !loadingApplePay || step === 'googlepay' && !loadingGooglePay || step === 'cardonfile' && !loadingCardOnFile) {
       <div class="row text-center mt-1">
         <div class="col-sm">
           <div class="form-group w-100">
@@ -476,8 +483,13 @@
             <div id="cash-app-pay" class="d-inline-block" style="height: 50px" [style]="loadingCashapp ? 'opacity: 0; width: 0px; height: 0px; pointer-events: none;' : ''"></div>
           } @else if (step === 'googlepay') {
             <div id="google-pay-button" class="d-inline-block" style="height: 50px" [style]="loadingGooglePay ? 'opacity: 0; width: 0px; height: 0px; pointer-events: none;' : ''"></div>
+          } @else if (step === 'cardonfile') {
+            <div class="paymentMethod mx-2 d-flex justify-content-center align-items-center ml-auto mr-auto" style="width: 200px; height: 55px" (click)="requestCardOnFilePayment()" [style]="loadingCardOnFile ? 'opacity: 0; width: 0px; height: 0px; pointer-events: none;' : ''">
+              <fa-icon style="font-size: 24px; color: white" [icon]="['fas', 'credit-card']"></fa-icon>
+              <span class="ml-2" style="font-size: 22px">{{ estimate?.availablePaymentMethods?.cardOnFile?.card?.brand }} {{ estimate?.availablePaymentMethods?.cardOnFile?.card?.last_4 }}</span>
+            </div>
           }
-          @if (loadingCashapp || loadingApplePay || loadingGooglePay) {
+          @if (loadingCashapp || loadingApplePay || loadingGooglePay || loadingCardOnFile) {
           <div display="d-flex flex-row justify-content-center">
             <span i18n="accelerator.loading-payment-method">Loading payment method...</span>
             <div class="ml-2 spinner-border text-light" style="width: 25px; height: 25px"></div>
