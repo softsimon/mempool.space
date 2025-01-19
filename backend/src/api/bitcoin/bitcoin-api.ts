@@ -4,6 +4,7 @@ import { IBitcoinApi, SubmitPackageResult, TestMempoolAcceptResult } from './bit
 import { IEsploraApi } from './esplora-api.interface';
 import blocks from '../blocks';
 import mempool from '../mempool';
+import indexer from '../../indexer';
 import { TransactionExtended } from '../../mempool.interfaces';
 import transactionUtils from '../transaction-utils';
 
@@ -213,15 +214,37 @@ class BitcoinApi implements AbstractBitcoinApi {
   async $getOutspends(txId: string): Promise<IEsploraApi.Outspend[]> {
     const outSpends: IEsploraApi.Outspend[] = [];
     const tx = await this.$getRawTransaction(txId, true, false);
-    for (let i = 0; i < tx.vout.length; i++) {
-      if (tx.status && tx.status.block_height === 0) {
+    if (indexer.isCoreIndexReady('txospenderindex') === null) {
+      for (let i = 0; i < tx.vout.length; i++) {
+        if (tx.status && tx.status.block_height === 0) {
+          outSpends.push({
+            spent: false
+          });
+        } else {
+          const txOut = await this.bitcoindClient.getTxOut(txId, i);
+          outSpends.push({
+            spent: txOut === null,
+          });
+        }
+      }
+    } else {
+      const batchedOutpoints = Array.from(Array(tx.vout.length).keys()).map(x =>({txid: txId, vout:x}));
+      const spendingsResume = await this.bitcoindClient.getTxSpendingPrevOut(batchedOutpoints);
+      for (const outpointStatus of spendingsResume) {
+        if (outpointStatus.spendingtxid === undefined) {
+          outSpends.push({spent: false});
+          continue;
+        }
+        const spendingTx = await this.$getRawTransaction(outpointStatus.spendingtxid, true, false);
+        const inputIndex = spendingTx.vin.findIndex(x => x.txid === txId);
         outSpends.push({
-          spent: false
-        });
-      } else {
-        const txOut = await this.bitcoindClient.getTxOut(txId, i);
-        outSpends.push({
-          spent: txOut === null,
+          spent: true,
+          txid: outpointStatus.spendingtxid,
+          vin: inputIndex,
+          status: {
+            confirmed: true,
+          }
+
         });
       }
     }

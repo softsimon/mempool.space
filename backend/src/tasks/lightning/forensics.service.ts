@@ -3,6 +3,7 @@ import logger from '../../logger';
 import channelsApi from '../../api/explorer/channels.api';
 import bitcoinApi from '../../api/bitcoin/bitcoin-api-factory';
 import config from '../../config';
+import indexer from '../../indexer';
 import { IEsploraApi } from '../../api/bitcoin/esplora-api.interface';
 import { Common } from '../../api/common';
 import { ILightningApi } from '../../api/lightning/lightning-api.interface';
@@ -27,7 +28,7 @@ class ForensicsService {
     try {
       logger.debug(`Running forensics scans`);
 
-      if (config.MEMPOOL.BACKEND === 'esplora') {
+      if (config.MEMPOOL.BACKEND === 'esplora' || indexer.isCoreIndexReady('txospenderindex')) {
         await this.$runClosedChannelsForensics(false);
         await this.$runOpenedChannelsForensics();
       }
@@ -63,9 +64,9 @@ class ForensicsService {
          └──────────────────┘
   */
 
-  public async $runClosedChannelsForensics(onlyNewChannels: boolean = false): Promise<void> {
+public async $runClosedChannelsForensics(onlyNewChannels: boolean = false): Promise<void> {
     // Only Esplora backend can retrieve spent transaction outputs
-    if (config.MEMPOOL.BACKEND !== 'esplora') {
+    if (config.MEMPOOL.BACKEND !== 'esplora' && indexer.isCoreIndexReady('txospenderindex') !== null) {
       return;
     }
 
