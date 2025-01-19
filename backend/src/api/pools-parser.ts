@@ -19,15 +19,6 @@ class PoolsParser {
     'addresses': '[]',
     'slug': 'unknown'
   };
-  private uniqueLogs: string[] = [];
-
-  private uniqueLog(loggerFunction: any, msg: string): void {
-    if (this.uniqueLogs.includes(msg)) {
-      return;
-    }
-    this.uniqueLogs.push(msg);
-    loggerFunction(msg);
-  }
 
   public setMiningPools(pools): void {
     for (const pool of pools) {

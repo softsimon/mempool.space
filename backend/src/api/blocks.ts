@@ -33,8 +33,8 @@ import AccelerationRepository from '../repositories/AccelerationRepository';
 import { calculateFastBlockCpfp, calculateGoodBlockCpfp } from './cpfp';
 import mempool from './mempool';
 import CpfpRepository from '../repositories/CpfpRepository';
-import accelerationApi from './services/acceleration';
 import { parseDATUMTemplateCreator } from '../utils/bitcoin-script';
+import database from '../database';
 
 class Blocks {
   private blocks: BlockExtended[] = [];
@@ -1460,6 +1460,36 @@ class Blocks {
       }
     } catch (e) {
       // not a fatal error, we'll try again next time the indexer runs
+    }
+  }
+
+  public async $getBlockDefinitionHashes(): Promise<string[] | null> {
+    try {
+      const [rows]: any = await database.query(`SELECT DISTINCT(definition_hash) FROM blocks`);
+      if (rows && Array.isArray(rows)) {
+        return rows.map(r => r.definition_hash);
+      } else {
+        logger.debug(`Unable to retreive list of blocks.definition_hash from db (no result)`);
+        return null;
+      }
+    } catch (e) {
+      logger.debug(`Unable to retreive list of blocks.definition_hash from db (exception: ${e})`);
+      return null;
+    }
+  }
+
+  public async $getBlocksByDefinitionHash(definitionHash: string): Promise<string[] | null> {
+    try {
+      const [rows]: any = await database.query(`SELECT hash FROM blocks WHERE definition_hash = ?`, [definitionHash]);
+      if (rows && Array.isArray(rows)) {
+        return rows.map(r => r.hash);
+      } else {
+        logger.debug(`Unable to retreive list of blocks for definition hash ${definitionHash} from db (no result)`);
+        return null;
+      }
+    } catch (e) {
+      logger.debug(`Unable to retreive list of blocks for definition hash ${definitionHash} from db (exception: ${e})`);
+      return null;
     }
   }
 }

@@ -21,6 +21,7 @@ import transactionRepository from '../../repositories/TransactionRepository';
 import rbfCache from '../rbf-cache';
 import { calculateMempoolTxCpfp } from '../cpfp';
 import { handleError } from '../../utils/api';
+import poolsUpdater from '../../tasks/pools-updater';
 
 const TXID_REGEX = /^[a-f0-9]{64}$/i;
 const BLOCK_HASH_REGEX = /^[a-f0-9]{64}$/i;
@@ -56,6 +57,10 @@ class BitcoinRoutes {
       .get(config.MEMPOOL.API_URL_PREFIX + 'blocks-bulk/:from/:to', this.getBlocksByBulk.bind(this))
       // Temporarily add txs/package endpoint for all backends until esplora supports it
       .post(config.MEMPOOL.API_URL_PREFIX + 'txs/package', this.$submitPackage)
+      // Internal routes
+      .get(config.MEMPOOL.API_URL_PREFIX + 'internal/blocks/definition/list', this.getBlockDefinitionHashes)
+      .get(config.MEMPOOL.API_URL_PREFIX + 'internal/blocks/definition/current', this.getCurrentBlockDefinitionHash)
+      .get(config.MEMPOOL.API_URL_PREFIX + 'internal/blocks/:definitionHash', this.getBlocksByDefinitionHash)
       ;
 
       if (config.MEMPOOL.BACKEND !== 'esplora') {
@@ -734,6 +739,52 @@ class BitcoinRoutes {
     try {
       const rawMempool = await bitcoinApi.$getRawMempool();
       res.send(rawMempool);
+    } catch (e) {
+      handleError(req, res, 500, e instanceof Error ? e.message : e);
+    }
+  }
+
+  private async getBlockDefinitionHashes(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await blocks.$getBlockDefinitionHashes();
+      if (!result) {
+        handleError(req, res, 503, `Service Temporarily Unavailable`);
+        return;
+      }
+      res.setHeader('content-type', 'application/json');
+      res.send(result);
+    } catch (e) {
+      handleError(req, res, 500, e instanceof Error ? e.message : e);
+    }
+  }
+
+  private async getCurrentBlockDefinitionHash(req: Request, res: Response): Promise<void> {
+    try {
+      const currentSha = await poolsUpdater.getShaFromDb();
+      if (!currentSha) {
+        handleError(req, res, 503, `Service Temporarily Unavailable`);
+        return;
+      }
+      res.setHeader('content-type', 'text/plain');
+      res.send(currentSha);
+    } catch (e) {
+      handleError(req, res, 500, e instanceof Error ? e.message : e);
+    }
+  }
+
+  private async getBlocksByDefinitionHash(req: Request, res: Response): Promise<void> {
+    try {
+      if (typeof(req.params.definitionHash) !== 'string') {
+        res.status(400).send('Parameter "hash" must be a valid string');
+        return;
+      }
+      const blocksHash = await blocks.$getBlocksByDefinitionHash(req.params.definitionHash as string);
+      if (!blocksHash) {
+        handleError(req, res, 503, `Service Temporarily Unavailable`);
+        return;
+      }
+      res.setHeader('content-type', 'application/json');
+      res.send(blocksHash);
     } catch (e) {
       handleError(req, res, 500, e instanceof Error ? e.message : e);
     }
