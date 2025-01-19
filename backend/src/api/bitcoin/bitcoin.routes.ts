@@ -6,7 +6,7 @@ import websocketHandler from '../websocket-handler';
 import mempool from '../mempool';
 import feeApi from '../fee-api';
 import mempoolBlocks from '../mempool-blocks';
-import bitcoinApi from './bitcoin-api-factory';
+import bitcoinApi, { bitcoinCoreApi } from './bitcoin-api-factory';
 import { Common } from '../common';
 import backendInfo from '../backend-info';
 import transactionUtils from '../transaction-utils';
@@ -21,6 +21,7 @@ import transactionRepository from '../../repositories/TransactionRepository';
 import rbfCache from '../rbf-cache';
 import { calculateMempoolTxCpfp } from '../cpfp';
 import { handleError } from '../../utils/api';
+import BlocksRepository from '../../repositories/BlocksRepository';
 
 const TXID_REGEX = /^[a-f0-9]{64}$/i;
 const BLOCK_HASH_REGEX = /^[a-f0-9]{64}$/i;
@@ -86,8 +87,87 @@ class BitcoinRoutes {
           .get(config.MEMPOOL.API_URL_PREFIX + 'address-prefix/:prefix', this.getAddressPrefix)
           ;
       }
+
+      app.get('/api/internal/health', this.generateHealthReport);
   }
 
+  private async generateHealthReport(req: Request, res: Response): Promise<void> {
+    let response = {
+      core: {
+        height: -1
+      },
+      mempool: {
+        height: -1,
+        indexing: {
+          enabled: Common.indexingEnabled(),
+          blocks: {
+            count: -1,
+            progress: -1,
+            withCpfp: {
+              count: -1,
+              progress: -1,
+            },
+            withCoinStats: {
+              count: -1,
+              progress: -1,
+            }
+          },
+        }
+      },
+    };
+    
+    try {
+      // Bitcoin Core
+      let bitcoinCoreIndexes: number | string;
+      try {
+        bitcoinCoreIndexes = await bitcoinClient.getIndexInfo();
+        for (const indexName in bitcoinCoreIndexes as any) {
+          response.core[indexName.replace(/ /g,'_')] = bitcoinCoreIndexes[indexName];
+        }
+      } catch (e: any) {
+        response.core['error'] = e.message;
+      }
+      try {
+        response.core.height = await bitcoinCoreApi.$getBlockHeightTip();
+      } catch (e: any) {
+        response.core['error'] = e.message;
+      }
+
+      // Mempool
+      response.mempool.height = blocks.getCurrentBlockHeight();
+      if (Common.indexingEnabled()) {
+        const indexingBlockAmount = (config.MEMPOOL.INDEXING_BLOCKS_AMOUNT === -1 ? response.core.height : config.MEMPOOL.INDEXING_BLOCKS_AMOUNT);
+        const computeProgress = (count: number): number => Math.min(1.0, Math.round(count / indexingBlockAmount * 100) / 100);
+        response.mempool.indexing.blocks.count = await BlocksRepository.$getIndexedBlockCount();
+        response.mempool.indexing.blocks.progress = computeProgress(response.mempool.indexing.blocks.count);
+        response.mempool.indexing.blocks.withCpfp.count = await BlocksRepository.$getIndexedCpfpBlockCount();
+        response.mempool.indexing.blocks.withCpfp.progress = computeProgress(response.mempool.indexing.blocks.withCpfp.count);
+        response.mempool.indexing.blocks.withCoinStats.count = await BlocksRepository.$getIndexedCoinStatsBlockCount();
+        response.mempool.indexing.blocks.withCoinStats.progress = computeProgress(response.mempool.indexing.blocks.withCoinStats.count);
+      }
+
+      // Esplora
+      if (config.MEMPOOL.BACKEND === 'esplora') {
+        try {
+          response['esplora'] = {
+            height: await bitcoinApi.$getBlockHeightTip()
+          };
+        } catch (e: any) {
+          response['esplora'] = {
+            height: -1,
+            error: e.message
+          };
+        }
+      }
+
+      res.json(response);
+
+    } catch (e: any) {
+      logger.err(`Unable to generate health report. Exception: ${JSON.stringify(e)}`);
+      logger.err(e.stack);
+      res.status(500).send(e instanceof Error ? e.message : e);
+    }
+  }
 
   private getInitData(req: Request, res: Response) {
     try {
