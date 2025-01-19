@@ -251,12 +251,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: ["mempool", "liquid"]
+        module: ["mempool", "liquid", "testnet4"]
         include:
           - module: "mempool"
             spec: |
               cypress/e2e/mainnet/*.spec.ts
               cypress/e2e/signet/*.spec.ts
+          - module: "testnet4"
+            spec: |
               cypress/e2e/testnet4/*.spec.ts
           - module: "liquid"
             spec: |
@@ -327,6 +329,7 @@ jobs:
           browser: "chrome"
           ci-build-id: "${{ github.sha }}-${{ github.workflow }}-${{ github.event_name }}"
         env:
+          CYPRESS_REROUTE_TESTNET:  ${{ contains(matrix.spec, 'testnet4') }}
           COMMIT_INFO_MESSAGE: ${{ github.event.pull_request.title }}
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
