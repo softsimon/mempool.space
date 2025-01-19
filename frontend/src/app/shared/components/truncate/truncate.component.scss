@@ -37,6 +37,12 @@
     max-width: 300px;
     overflow: hidden;
   }
+
+  .disabled {
+    pointer-events: none;
+    opacity: 0.8;
+    color: #fff;
+  }
 }
 
 @media (max-width: 567px) {

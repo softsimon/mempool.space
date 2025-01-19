@@ -76,6 +76,7 @@
           <p><a [routerLink]="['/blocks' | relativeUrl]" i18n="dashboard.recent-blocks">Recent Blocks</a></p>
           <p><a [routerLink]="['/tx/push' | relativeUrl]" i18n="shared.broadcast-transaction|Broadcast Transaction">Broadcast Transaction</a></p>
           <p><a [routerLink]="['/tx/test' | relativeUrl]" i18n="shared.test-transaction|Test Transaction">Test Transaction</a></p>
+          <p><a [routerLink]="['/tx/preview' | relativeUrl]" i18n="shared.preview-transaction|Preview Transaction">Preview Transaction</a></p>
           <p *ngIf="officialMempoolSpace"><a [routerLink]="['/lightning/group/the-mempool-open-source-project' | relativeUrl]" i18n="footer.connect-to-our-nodes">Connect to our Nodes</a></p>
           <p><a [routerLink]="['/docs/api' | relativeUrl]" i18n="footer.api-documentation">API Documentation</a></p>
         </div>

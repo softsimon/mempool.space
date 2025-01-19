@@ -15,6 +15,7 @@ export class TruncateComponent {
   @Input() maxWidth: number = null;
   @Input() inline: boolean = false;
   @Input() textAlign: 'start' | 'end' = 'start';
+  @Input() disabled: boolean = false;
   rtl: boolean;
 
   constructor(

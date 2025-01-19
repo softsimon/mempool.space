@@ -1,0 +1,32 @@
+.title {
+  h2 {
+    line-height: 1;
+    margin: 0;
+    padding-bottom: 5px;
+  }
+}
+
+.cpfp-details {
+  .txids {
+    width: 60%;
+  }
+
+  @media (max-width: 500px) {
+    .txids {
+      width: 40%;
+    }
+  }
+}
+
+.arrow-green {
+	color: var(--success);
+}
+
+.arrow-red {
+	color: var(--red);
+}
+
+.badge {
+	position: relative;
+	top: -1px;
+}

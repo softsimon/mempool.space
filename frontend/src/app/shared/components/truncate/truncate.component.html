@@ -1,6 +1,6 @@
 <span class="truncate" [style.max-width]="maxWidth ? maxWidth + 'px' : null" [style.justify-content]="textAlign" [class.inline]="inline">
     <ng-container *ngIf="link">
-      <a [routerLink]="link" [queryParams]="queryParams" class="truncate-link" [target]="external ? '_blank' : '_self'">
+      <a [routerLink]="link" [queryParams]="queryParams" class="truncate-link" [target]="external ? '_blank' : '_self'" [class.disabled]="disabled">
         <ng-container *ngIf="rtl; then rtlTruncated; else ltrTruncated;"></ng-container>
       </a>
     </ng-container>

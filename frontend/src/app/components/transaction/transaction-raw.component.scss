@@ -1,5 +1,5 @@
-.adjust-btn-padding {
-  padding: 0.55rem;
+.label {
+  margin: 0 5px;
 }
 
 .container-buttons {
@@ -48,32 +48,6 @@
   }
 }
 
-.td-width {
-	width: 150px;
-
-	@media (max-width: 768px) {
-	  width: 175px;
-	}
-}
-
-.badge {
-	position: relative;
-	top: -1px;
-}
-
-.badge.badge-accelerated {
-  background-color: var(--tertiary);
-  color: white;
-}
-
-.arrow-green {
-	color: var(--success);
-}
-
-.arrow-red {
-	color: var(--red);
-}
-
 .container-xl {
 	margin-bottom: 40px;
 }
@@ -112,25 +86,6 @@
   margin: auto;
 }
 
-@media (max-width: 767.98px) {
-	.mobile-bottomcol {
-		margin-top: 15px;
-	}
-
-	.details-table td:first-child {
-		white-space: pre-wrap;
-	}
-}
-
-.fiat {
-	display: block;
-	@media (min-width: 768px){
-		display: inline-block;
-		margin-left: 15px;
-		text-align: left;
-	}
-}
-
 .table {
   tr td {
 		padding: 0.75rem 0.5rem;
@@ -164,12 +119,6 @@
 	}
 }
 
-@media (max-width: 767px){
-  .hide-on-mobile {
-    display: none;
-  }
-}
-
 .effective-fee-rating {
   @media (max-width: 767px){
     margin-right: 0px !important;
@@ -191,7 +140,7 @@
 	}
 }
 
-.details-button, .flow-toggle, .accelerator-toggle {
+.flow-toggle {
   margin-top: -5px;
   margin-left: 10px;
 	@media (min-width: 768px){
@@ -199,11 +148,6 @@
     margin-top: 0px;
     margin-bottom: 0px;
 	}
-}
-
-.accelerator-toggle, .details-button {
-  position: relative;
-  bottom: -13px;
 }
 
 .subtitle-block {
@@ -227,86 +171,24 @@
   }
 }
 
-.tx-list {
-  .alert-link {
-    display: block;
+.cpfp-details {
+  .txids {
+    width: 60%;
   }
-}
 
-.alert-purple {
-  background-color: #5c3a88;
-  width: 100%;
-}
-
-// Blinking block
-@keyframes shadowyBackground {
-  0% {
-    box-shadow: 0px 0px 20px rgba(#eba814, 1);
+  @media (max-width: 500px) {
+    .txids {
+      width: 40%;
+    }
   }
-  50% {
-    box-shadow: 0px 0px 20px rgba(#eba814, .3);
-  }
-  100% {
-    box-shadow: 0px 0px 20px rgba(#ffae00, 1);
-  }
-}
-
-.blink-bg {
-  color: var(--fg);
-  background: repeating-linear-gradient(#daad0a 0%, #daad0a 5%, #987805 100%) !important;
-  animation: shadowyBackground 1s infinite;
-  box-shadow: 0px 0px 20px rgba(#eba814, 1);
-  transition: 100ms all ease-in;
-  margin-right: 8px;
-  font-size: 16px;
-  border: 1px solid gold;
-}
-
-.eta {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: center;
-  @media (min-width: 850px) {
-    justify-content: left !important;    
-  }
-}
-
-.accelerate {
-  @media (min-width: 850px) {
-    margin-left: auto;
-  }  
-}
-
-.etaDeepMempool {
-  flex-wrap: wrap;
-  @media (max-width: 849px) {
-    justify-content: right !important;
-  }
-}
-
-.accelerateDeepMempool {
-  background-color: var(--tertiary);
-  margin-left: 5px;
-}
-
-.goggles-icon {
-  display: block;
-  width: 2.7em;
-}
-
-.pool-logo {
-  width: 15px;
-  height: 15px;
-  position: relative;
-  top: -1px;
-  margin-right: 2px;
-}
-
-.oobFees {
-  color: #905cf4;
 }
 
 .disabled {
   opacity: 0.5;
+  pointer-events: none;
+}
+
+.no-cursor {
+  cursor: default !important;
   pointer-events: none;
 }

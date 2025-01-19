@@ -1,0 +1,205 @@
+<div class="container-xl">
+
+  @if (!transaction) {
+
+    <h1 style="margin-top: 19px;" i18n="shared.preview-transaction|Preview Transaction">Preview Transaction</h1>
+
+    <form [formGroup]="pushTxForm" (submit)="decodeTransaction()" novalidate>
+      <div class="mb-3">
+        <textarea formControlName="txRaw" class="form-control" rows="5" i18n-placeholder="transaction.hex" placeholder="Transaction hex"></textarea>
+      </div>
+      <button [disabled]="isLoading" type="submit" class="btn btn-primary mr-2" i18n="shared.preview-transaction|Preview Transaction">Preview Transaction</button>
+      <input type="checkbox" [checked]="!offlineMode" id="offline-mode" (change)="onOfflineModeChange($event)">
+      <label class="label" for="offline-mode">
+        <span i18n="transaction.fetch-prevout-data">Fetch prevout data</span>
+      </label>
+      <p *ngIf="error" class="red-color d-inline">Error decoding transaction, reason: {{ error }}</p>
+    </form>
+  }
+
+  @if (transaction && !error && !isLoading) {
+    <div class="title-block">
+      <h1 i18n="shared.preview-transaction|Preview Transaction">Preview Transaction</h1>
+
+      <span class="tx-link">
+        <span class="txid">
+          <app-truncate [text]="transaction.txid" [lastChars]="12" [link]="['/tx/' | relativeUrl, transaction.txid]" [disabled]="!successBroadcast">
+            <app-clipboard [text]="transaction.txid"></app-clipboard>
+          </app-truncate>
+        </span>
+      </span>
+
+      <div class="container-buttons">
+        <button *ngIf="!successBroadcast" [disabled]="isLoadingBroadcast" type="button" class="btn btn-sm btn-primary" i18n="transaction.broadcast|Broadcast" (click)="postTx()">Broadcast</button>
+        <button *ngIf="successBroadcast" type="button" class="btn btn-sm btn-success no-cursor" i18n="transaction.broadcasted|Broadcasted">Broadcasted</button>
+        <button class="btn btn-sm" style="margin-left: 10px; padding: 0;" (click)="resetForm()">&#10005;</button>
+      </div>
+
+    </div>
+
+    <p class="red-color d-inline">{{ errorBroadcast }}</p>
+
+    <div class="clearfix"></div>
+
+    @if (!hasPrevouts) {
+      <div class="alert alert-mempool">
+        @if (offlineMode) {
+          <span><strong>Prevouts are not loaded, some fields like fee rate cannot be displayed.</strong></span>
+        } @else {
+          <span><strong>Error loading prevouts</strong>. {{ errorPrevouts ? 'Reason: ' + errorPrevouts : '' }}</span>
+        }
+      </div>
+    }
+
+    @if (errorCpfpInfo) {
+      <div class="alert alert-mempool">
+        <span><strong>Error loading CPFP data</strong>. Reason: {{ errorCpfpInfo }}</span>
+      </div>
+    }
+
+    <app-transaction-details
+      [network]="stateService.network"
+      [tx]="transaction"
+      [isLoadingTx]="false"
+      [isMobile]="isMobile"
+      [isLoadingFirstSeen]="false"
+      [featuresEnabled]="true"
+      [filters]="filters"
+      [hasEffectiveFeeRate]="false"
+      [cpfpInfo]="null"
+      [ETA$]="ETA$"
+      [hasEffectiveFeeRate]="hasEffectiveFeeRate"
+      [cpfpInfo]="cpfpInfo"
+      [hasCpfp]="hasCpfp"
+      (toggleCpfp$)="this.showCpfpDetails = !this.showCpfpDetails"
+    ></app-transaction-details>
+  
+    <app-cpfp-info *ngIf="showCpfpDetails" [cpfpInfo]="cpfpInfo" [tx]="transaction"></app-cpfp-info>
+    <br>
+
+    <ng-container *ngIf="flowEnabled; else flowPlaceholder">
+      <div class="title float-left">
+        <h2 id="flow" i18n="transaction.flow|Transaction flow">Flow</h2>
+      </div>
+
+      <button type="button" class="btn btn-outline-info flow-toggle btn-sm float-right" (click)="toggleGraph()" i18n="hide-diagram">Hide diagram</button>
+
+      <div class="clearfix"></div>
+
+      <div class="box">
+        <div class="graph-container" #graphContainer>
+          <tx-bowtie-graph
+            [tx]="transaction"
+            [cached]="true"
+            [width]="graphWidth"
+            [height]="graphHeight"
+            [lineLimit]="inOutLimit"
+            [maxStrands]="graphExpanded ? maxInOut : 24"
+            [network]="stateService.network"
+            [tooltip]="true"
+            [connectors]="true"
+            [inputIndex]="null" [outputIndex]="null"
+          >
+          </tx-bowtie-graph>
+        </div>
+        <div class="toggle-wrapper" *ngIf="maxInOut > 24">
+          <button class="btn btn-sm btn-primary graph-toggle" (click)="expandGraph();" *ngIf="!graphExpanded; else collapseBtn"><span i18n="show-more">Show more</span></button>
+          <ng-template #collapseBtn>
+            <button class="btn btn-sm btn-primary graph-toggle" (click)="collapseGraph();"><span i18n="show-less">Show less</span></button>
+          </ng-template>
+        </div>
+      </div>
+
+      <br>
+    </ng-container>
+    <ng-template #flowPlaceholder>
+      <div class="box hidden">
+        <div class="graph-container" #graphContainer>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="subtitle-block">
+      <div class="title">
+        <h2 i18n="transaction.inputs-and-outputs|Transaction inputs and outputs">Inputs & Outputs</h2>
+      </div>
+
+      <div class="title-buttons">
+        <button *ngIf="!flowEnabled" type="button" class="btn btn-outline-info flow-toggle btn-sm" (click)="toggleGraph()" i18n="show-diagram">Show diagram</button>
+        <button type="button" class="btn btn-outline-info btn-sm" (click)="txList.toggleDetails()" i18n="transaction.details|Transaction Details">Details</button>
+      </div>
+    </div>
+
+
+    <app-transactions-list #txList [transactions]="[transaction]" [transactionPage]="true" [txPreview]="true"></app-transactions-list>
+
+    <div class="title text-left">
+      <h2 i18n="transaction.details|Transaction Details">Details</h2>
+    </div>
+    <div class="box">
+      <div class="row">
+        <div class="col-sm">
+          <table class="table table-borderless table-striped">
+            <tbody>
+              <tr>
+                <td i18n="block.size">Size</td>
+                <td [innerHTML]="'&lrm;' + (transaction.size | bytes: 2)"></td>
+              </tr>
+              <tr>
+                <td i18n="transaction.vsize|Transaction Virtual Size">Virtual size</td>
+                <td [innerHTML]="'&lrm;' + (transaction.weight / 4 | vbytes: 2)"></td>
+              </tr>
+              <tr *ngIf="adjustedVsize">
+                <td><ng-container i18n="transaction.adjusted-vsize|Transaction Adjusted VSize">Adjusted vsize</ng-container>
+                  <a class="info-link" [routerLink]="['/docs/faq/' | relativeUrl]" fragment="what-is-adjusted-vsize">
+                    <fa-icon [icon]="['fas', 'info-circle']" [fixedWidth]="true"></fa-icon>
+                  </a>
+                </td>
+                <td [innerHTML]="'&lrm;' + (adjustedVsize | vbytes: 2)"></td>
+              </tr>
+              <tr>
+                <td i18n="block.weight">Weight</td>
+                <td [innerHTML]="'&lrm;' + (transaction.weight | wuBytes: 2)"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="col-sm">
+          <table class="table table-borderless table-striped">
+            <tbody>
+              <tr>
+                <td i18n="transaction.version">Version</td>
+                <td [innerHTML]="'&lrm;' + (transaction.version | number)"></td>
+              </tr>
+              <tr>
+                <td i18n="transaction.locktime">Locktime</td>
+                <td [innerHTML]="'&lrm;' + (transaction.locktime | number)"></td>
+              </tr>
+              <tr *ngIf="transaction.sigops >= 0">
+                <td><ng-container i18n="transaction.sigops|Transaction Sigops">Sigops</ng-container>
+                  <a class="info-link" [routerLink]="['/docs/faq/' | relativeUrl]" fragment="what-are-sigops">
+                    <fa-icon [icon]="['fas', 'info-circle']" [fixedWidth]="true"></fa-icon>
+                  </a>
+                </td>
+                <td [innerHTML]="'&lrm;' + (transaction.sigops | number)"></td>
+              </tr>
+              <tr>
+                <td i18n="transaction.hex">Transaction hex</td>
+                <td><app-clipboard [text]="pushTxForm.get('txRaw').value" [leftPadding]="false"></app-clipboard></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (isLoading) {
+    <div class="text-center">
+      <div class="spinner-border text-light mt-2 mb-2"></div>
+      <h3 i18n="transaction.error.loading-prevouts">
+        Loading {{ isLoadingPrevouts ? 'transaction prevouts' : isLoadingCpfpInfo ? 'CPFP' : '' }}
+      </h3>
+    </div>
+  }
+</div>

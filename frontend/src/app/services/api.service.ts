@@ -565,6 +565,14 @@ export class ApiService {
     return this.httpClient.post(this.apiBaseUrl + this.apiBasePath + '/api/v1/acceleration/request/' + txid, '');
   }
 
+  getPrevouts$(outpoints: {txid: string; vout: number}[]): Observable<any> {
+    return this.httpClient.post(this.apiBaseUrl + this.apiBasePath + '/api/v1/prevouts', outpoints);
+  }
+
+  getCpfpLocalTx$(tx: any[]): Observable<CpfpInfo[]> {
+    return this.httpClient.post<CpfpInfo[]>(this.apiBaseUrl + this.apiBasePath + '/api/v1/cpfp', tx);
+  }
+
   // Cache methods
   async setBlockAuditLoaded(hash: string) {
     this.blockAuditLoaded[hash] = true;

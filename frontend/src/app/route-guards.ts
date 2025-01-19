@@ -14,7 +14,7 @@ class GuardService {
   trackerGuard(route: Route, segments: UrlSegment[]): boolean {
     const preferredRoute = this.router.getCurrentNavigation()?.extractedUrl.queryParams?.mode;
     const path = this.router.getCurrentNavigation()?.extractedUrl.root.children.primary.segments;
-    return (preferredRoute === 'status' || (preferredRoute !== 'details' && this.navigationService.isInitialLoad())) && window.innerWidth <= 767.98 && !(path.length === 2 && ['push', 'test'].includes(path[1].path));
+    return (preferredRoute === 'status' || (preferredRoute !== 'details' && this.navigationService.isInitialLoad())) && window.innerWidth <= 767.98 && !(path.length === 2 && ['push', 'test', 'preview'].includes(path[1].path));
   }
 }
 

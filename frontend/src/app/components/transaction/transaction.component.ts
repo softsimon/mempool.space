@@ -1054,10 +1054,6 @@ export class TransactionComponent implements OnInit, AfterViewInit, OnDestroy {
     this.stateService.markBlock$.next({});
   }
 
-  roundToOneDecimal(cpfpTx: any): number {
-    return +(cpfpTx.fee / (cpfpTx.weight / 4)).toFixed(1);
-  }
-
   setupGraph() {
     this.maxInOut = Math.min(this.inOutLimit, Math.max(this.tx?.vin?.length || 1, this.tx?.vout?.length + 1 || 1));
     this.graphHeight = this.graphExpanded ? this.maxInOut * 15 : Math.min(360, this.maxInOut * 80);

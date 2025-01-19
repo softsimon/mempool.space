@@ -37,6 +37,7 @@ export class TransactionsListComponent implements OnInit, OnChanges {
   @Input() addresses: string[] = [];
   @Input() rowLimit = 12;
   @Input() blockTime: number = 0; // Used for price calculation if all the transactions are in the same block
+  @Input() txPreview = false;
 
   @Output() loadMore = new EventEmitter();
 
@@ -81,7 +82,7 @@ export class TransactionsListComponent implements OnInit, OnChanges {
       this.refreshOutspends$
         .pipe(
           switchMap((txIds) => {
-            if (!this.cached) {
+            if (!this.cached && !this.txPreview) {
               // break list into batches of 50 (maximum supported by esplora)
               const batches = [];
               for (let i = 0; i < txIds.length; i += 50) {
@@ -119,7 +120,7 @@ export class TransactionsListComponent implements OnInit, OnChanges {
         ),
         this.refreshChannels$
           .pipe(
-            filter(() => this.stateService.networkSupportsLightning()),
+            filter(() => this.stateService.networkSupportsLightning() && !this.txPreview),
             switchMap((txIds) => this.apiService.getChannelByTxIds$(txIds)),
             catchError((error) => {
               // handle 404
@@ -187,7 +188,10 @@ export class TransactionsListComponent implements OnInit, OnChanges {
       }
 
       this.transactionsLength = this.transactions.length;
-      this.cacheService.setTxCache(this.transactions);
+      
+      if (!this.txPreview) {
+        this.cacheService.setTxCache(this.transactions);
+      }
 
       const confirmedTxs = this.transactions.filter((tx) => tx.status.confirmed).length;
       this.transactions.forEach((tx) => {
@@ -351,7 +355,7 @@ export class TransactionsListComponent implements OnInit, OnChanges {
   }
 
   loadMoreInputs(tx: Transaction): void {
-    if (!tx['@vinLoaded']) {
+    if (!tx['@vinLoaded'] && !this.txPreview) {
       this.electrsApiService.getTransaction$(tx.txid)
         .subscribe((newTx) => {
           tx['@vinLoaded'] = true;
