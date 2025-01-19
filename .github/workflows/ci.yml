@@ -9,7 +9,7 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'ops') && !contains(github.head_ref, 'ops/')"
     strategy:
       matrix:
-        node: ["20", "21"]
+        node: ["20", "22"]
         flavor: ["dev", "prod"]
       fail-fast: false
     runs-on: "ubuntu-latest"
@@ -160,7 +160,7 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'ops') && !contains(github.head_ref, 'ops/')"
     strategy:
       matrix:
-        node: ["20", "21"]
+        node: ["20", "22"]
         flavor: ["dev", "prod"]
       fail-fast: false
     runs-on: "ubuntu-latest"
@@ -273,7 +273,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
           cache-dependency-path: ${{ matrix.module }}/frontend/package-lock.json
 
