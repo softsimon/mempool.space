@@ -32,9 +32,9 @@
             <td i18n="block.weight">Weight</td>
             <td [innerHTML]="'&lrm;' + (block?.weight | wuBytes: 2)"></td>
           </tr>
-          <tr *ngIf="block?.extras?.medianFee != undefined">
+          <tr *ngIf="block?.extras?.medianFee != undefined && block?.extras?.effectiveMedianFee != undefined">
             <td class="td-width" i18n="block.median-fee">Median fee</td>
-            <td>~<app-fee-rate [fee]="block?.extras?.medianFee" rounding="1.0-0"></app-fee-rate></td>
+            <td>~<app-fee-rate [fee]="block?.extras?.effectiveMedianFee ?? block?.extras?.medianFee" rounding="1.0-0"></app-fee-rate></td>
           </tr>
           <ng-template [ngIf]="fees !== undefined">
             <tr>

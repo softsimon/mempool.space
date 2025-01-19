@@ -33,6 +33,8 @@ interface DatabaseBlock {
   totalFees: number;
   medianFee: number;
   feeRange: string;
+  effectiveMedianFee?: number;
+  effectiveFeeRange?: string;
   reward: number;
   poolId: number;
   poolName: string;
@@ -77,6 +79,8 @@ const BLOCK_DB_FIELDS = `
   blocks.fees AS totalFees,
   blocks.median_fee AS medianFee,
   blocks.fee_span AS feeRange,
+  blocks.effective_median_fee AS effectiveMedianFee,
+  blocks.effective_fee_span AS effectiveFeeRange,
   blocks.reward,
   pools.unique_id AS poolId,
   pools.name AS poolName,
@@ -108,7 +112,7 @@ class BlocksRepository {
   /**
    * Save indexed block data in the database
    */
-  public async $saveBlockInDatabase(block: BlockExtended) {
+  public async $saveBlockInDatabase(block: BlockExtended): Promise<void> {
     const truncatedCoinbaseSignature = block?.extras?.coinbaseSignature?.substring(0, 500);
     const truncatedCoinbaseSignatureAscii = block?.extras?.coinbaseSignatureAscii?.substring(0, 500);
 
@@ -117,6 +121,7 @@ class BlocksRepository {
         height,             hash,                blockTimestamp,    size,
         weight,             tx_count,            coinbase_raw,      difficulty,
         pool_id,            fees,                fee_span,          median_fee,
+        effective_fee_span, effective_median_fee,
         reward,             version,             bits,              nonce,
         merkle_root,        previous_block_hash, avg_fee,           avg_fee_rate,
         median_timestamp,   header,              coinbase_address,  coinbase_addresses,
@@ -128,6 +133,7 @@ class BlocksRepository {
         ?, ?, FROM_UNIXTIME(?), ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
+        ?, ?,
         ?, ?, ?, ?,
         ?, ?, ?, ?,
         FROM_UNIXTIME(?), ?, ?, ?,
@@ -155,6 +161,8 @@ class BlocksRepository {
         block.extras.totalFees,
         JSON.stringify(block.extras.feeRange),
         block.extras.medianFee,
+        block.extras.effectiveFeeRange ? JSON.stringify(block.extras.effectiveFeeRange) : null,
+        block.extras.effectiveMedianFee,
         block.extras.reward,
         block.version,
         block.bits,
@@ -968,16 +976,16 @@ class BlocksRepository {
 
   /**
    * Save indexed effective fee statistics
-   * 
-   * @param id 
-   * @param feeStats 
+   *
+   * @param id
+   * @param feeStats
    */
   public async $saveEffectiveFeeStats(id: string, feeStats: EffectiveFeeStats): Promise<void> {
     try {
       await DB.query(`
-        UPDATE blocks SET median_fee = ?, fee_span = ?
+        UPDATE blocks SET effective_median_fee = ?, effective_fee_span = ?
         WHERE hash = ?`,
-        [feeStats.medianFee, JSON.stringify(feeStats.feeRange), id]
+        [feeStats.effective_median, JSON.stringify(feeStats.effective_range), id]
       );
     } catch (e) {
       logger.err(`Cannot update block fee stats. Reason: ` + (e instanceof Error ? e.message : e));
@@ -1065,11 +1073,13 @@ class BlocksRepository {
     blk.weight = dbBlk.weight;
     blk.previousblockhash = dbBlk.previousblockhash;
     blk.mediantime = dbBlk.mediantime;
-    
+
     // BlockExtension
     extras.totalFees = dbBlk.totalFees;
     extras.medianFee = dbBlk.medianFee;
     extras.feeRange = JSON.parse(dbBlk.feeRange);
+    extras.effectiveMedianFee = dbBlk.effectiveMedianFee;
+    extras.effectiveFeeRange = dbBlk.effectiveFeeRange ? JSON.parse(dbBlk.effectiveFeeRange) : null;
     extras.reward = dbBlk.reward;
     extras.pool = {
       id: dbBlk.poolId,

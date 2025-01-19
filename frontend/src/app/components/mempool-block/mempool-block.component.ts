@@ -57,6 +57,9 @@ export class MempoolBlockComponent implements OnInit, OnDestroy {
                   this.mempoolBlockIndex--;
                 }
                 const ordinal = this.getOrdinal(mempoolBlocks[this.mempoolBlockIndex]);
+                // prefer effective fee stats if available
+                mempoolBlocks[this.mempoolBlockIndex].feeRange = mempoolBlocks[this.mempoolBlockIndex].effectiveFeeRange ?? mempoolBlocks[this.mempoolBlockIndex].feeRange;
+                mempoolBlocks[this.mempoolBlockIndex].medianFee = mempoolBlocks[this.mempoolBlockIndex].effectiveMedianFee ?? mempoolBlocks[this.mempoolBlockIndex].medianFee;
                 this.ordinal$.next(ordinal);
                 this.seoService.setTitle(ordinal);
                 this.seoService.setDescription($localize`:@@meta.description.mempool-block:See stats for ${this.stateService.network==='liquid'||this.stateService.network==='liquidtestnet'?'Liquid':'Bitcoin'}${seoDescriptionNetwork(this.stateService.network)} transactions in the mempool: fee range, aggregate size, and more. Mempool blocks are updated in real-time as the network receives new transactions.`);

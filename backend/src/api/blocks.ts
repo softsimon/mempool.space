@@ -244,7 +244,7 @@ class Blocks {
    */
   private async $getBlockExtended(block: IEsploraApi.Block, transactions: TransactionExtended[]): Promise<BlockExtended> {
     const coinbaseTx = transactionUtils.stripCoinbaseTransaction(transactions[0]);
-    
+
     const blk: Partial<BlockExtended> = Object.assign({}, block);
     const extras: Partial<BlockExtension> = {};
 
@@ -268,15 +268,17 @@ class Blocks {
       extras.segwitTotalWeight = 0;
     } else {
       const stats: IBitcoinApi.BlockStats = await bitcoinClient.getBlockStats(block.id);
-      let feeStats = {
+      const feeStats = {
         medianFee: stats.feerate_percentiles[2], // 50th percentiles
         feeRange: [stats.minfeerate, stats.feerate_percentiles, stats.maxfeerate].flat(),
       };
-      if (transactions?.length > 1) {
-        feeStats = Common.calcEffectiveFeeStatistics(transactions);
-      }
       extras.medianFee = feeStats.medianFee;
       extras.feeRange = feeStats.feeRange;
+      if (transactions?.length > 1) {
+        const effectiveFeeStats = Common.calcEffectiveFeeStatistics(transactions);
+        extras.effectiveMedianFee = effectiveFeeStats.effective_median;
+        extras.effectiveFeeRange = effectiveFeeStats.effective_range;
+      }
       extras.totalFees = stats.totalfee;
       extras.avgFee = stats.avgfee;
       extras.avgFeeRate = stats.avgfeerate;
@@ -296,7 +298,7 @@ class Blocks {
         extras.medianFeeAmt = extras.feePercentiles[3];
       }
     }
-  
+
     extras.virtualSize = block.weight / 4.0;
     if (coinbaseTx?.vout.length > 0) {
       extras.coinbaseAddress = coinbaseTx.vout[0].scriptpubkey_address ?? null;
@@ -1316,6 +1318,8 @@ class Blocks {
         avg_fee_rate: block.extras.avgFeeRate ?? null,
         median_fee_rate: block.extras.medianFee ?? null,
         fee_rate_percentiles: block.extras.feeRange ?? null,
+        effective_median_fee_rate: block.extras.effectiveMedianFee ?? null,
+        effective_fee_rate_percentiles: block.extras.effectiveFeeRange ?? null,
         total_inputs: block.extras.totalInputs ?? null,
         total_input_amt: block.extras.totalInputAmt ?? null,
         total_outputs: block.extras.totalOutputs ?? null,
@@ -1378,6 +1382,17 @@ class Blocks {
         'perc_90': cleanBlock.fee_rate_percentiles[5],
         'max': cleanBlock.fee_rate_percentiles[6],
       };
+      if (cleanBlock.effective_fee_rate_percentiles) {
+        cleanBlock.effective_fee_rate_percentiles = {
+          'min': cleanBlock.effective_fee_rate_percentiles[0],
+          'perc_10': cleanBlock.effective_fee_rate_percentiles[1],
+          'perc_25': cleanBlock.effective_fee_rate_percentiles[2],
+          'perc_50': cleanBlock.effective_fee_rate_percentiles[3],
+          'perc_75': cleanBlock.effective_fee_rate_percentiles[4],
+          'perc_90': cleanBlock.effective_fee_rate_percentiles[5],
+          'max': cleanBlock.effective_fee_rate_percentiles[6],
+        };
+      }
 
       // Re-org can happen after indexing so we need to always get the
       // latest state from core

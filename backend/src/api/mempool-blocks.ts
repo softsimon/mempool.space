@@ -1,6 +1,6 @@
 import { GbtGenerator, GbtResult, ThreadTransaction as RustThreadTransaction, ThreadAcceleration as RustThreadAcceleration } from 'rust-gbt';
 import logger from '../logger';
-import { MempoolBlock, MempoolTransactionExtended, MempoolBlockWithTransactions, MempoolBlockDelta, Ancestor, CompactThreadTransaction, EffectiveFeeStats, TransactionClassified, TransactionCompressed, MempoolDeltaChange, GbtCandidates, PoolTag } from '../mempool.interfaces';
+import { MempoolBlock, MempoolTransactionExtended, MempoolBlockWithTransactions, MempoolBlockDelta, Ancestor, CompactThreadTransaction, FeeStats, TransactionClassified, TransactionCompressed, MempoolDeltaChange, GbtCandidates, PoolTag, EffectiveFeeStats } from '../mempool.interfaces';
 import { Common, OnlineFeeStatsCalculator } from './common';
 import config from '../config';
 import { Worker } from 'worker_threads';
@@ -33,6 +33,8 @@ class MempoolBlocks {
         totalFees: block.totalFees,
         medianFee: block.medianFee,
         feeRange: block.feeRange,
+        effectiveMedianFee: block.effectiveMedianFee,
+        effectiveFeeRange: block.effectiveFeeRange,
       };
     });
   }
@@ -527,7 +529,7 @@ class MempoolBlocks {
         totalSize,
         totalWeight,
         totalFees,
-        (hasBlockStack && blockIndex === lastBlockIndex && feeStatsCalculator) ? feeStatsCalculator.getRawFeeStats() : undefined,
+        (hasBlockStack && blockIndex === lastBlockIndex && feeStatsCalculator) ? feeStatsCalculator.getFeeStats() : undefined,
       );
     };
 
@@ -541,17 +543,20 @@ class MempoolBlocks {
     return mempoolBlocks;
   }
 
-  private dataToMempoolBlocks(transactionIds: string[], transactions: MempoolTransactionExtended[], totalSize: number, totalWeight: number, totalFees: number, feeStats?: EffectiveFeeStats ): MempoolBlockWithTransactions {
-    if (!feeStats) {
-      feeStats = Common.calcEffectiveFeeStatistics(transactions);
+  private dataToMempoolBlocks(transactionIds: string[], transactions: MempoolTransactionExtended[], totalSize: number, totalWeight: number, totalFees: number, effectiveFeeStats?: EffectiveFeeStats ): MempoolBlockWithTransactions {
+    const feeStats = Common.calcFeeStatistics(transactions);
+    if (!effectiveFeeStats) {
+      effectiveFeeStats = Common.calcEffectiveFeeStatistics(transactions);
     }
     return {
       blockSize: totalSize,
       blockVSize: (totalWeight / 4), // fractional vsize to avoid rounding errors
       nTx: transactionIds.length,
       totalFees: totalFees,
-      medianFee: feeStats.medianFee, // Common.percentile(transactions.map((tx) => tx.effectiveFeePerVsize), config.MEMPOOL.RECOMMENDED_FEE_PERCENTILE),
-      feeRange: feeStats.feeRange, //Common.getFeesInRange(transactions, rangeLength),
+      medianFee: feeStats.median,
+      feeRange: feeStats.range,
+      effectiveMedianFee: effectiveFeeStats.effective_median,
+      effectiveFeeRange: effectiveFeeStats.effective_range,
       transactionIds: transactionIds,
       transactions: transactions.map((tx) => Common.classifyTransaction(tx)),
     };

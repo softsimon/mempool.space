@@ -1,6 +1,6 @@
 import * as bitcoinjs from 'bitcoinjs-lib';
 import { Request } from 'express';
-import { EffectiveFeeStats, MempoolBlockWithTransactions, TransactionExtended, MempoolTransactionExtended, TransactionStripped, WorkingEffectiveFeeStats, TransactionClassified, TransactionFlags } from '../mempool.interfaces';
+import { EffectiveFeeStats, MempoolBlockWithTransactions, TransactionExtended, MempoolTransactionExtended, TransactionStripped, WorkingEffectiveFeeStats, TransactionClassified, TransactionFlags, FeeStats } from '../mempool.interfaces';
 import config from '../config';
 import { NodeSocket } from '../repositories/NodesSocketsRepository';
 import { isIP } from 'net';
@@ -856,6 +856,15 @@ export class Common {
     }
   }
 
+  static calcFeeStatistics(transactions: { txid: string, feePerVsize: number }[]): FeeStats {
+    // skip the coinbase, then sort the remaining fee rates
+    const sortedRates = transactions.slice(1).map(tx => tx.feePerVsize).sort((a, b) => a - b);
+    return {
+      median: Math.round(Common.getNthPercentile(50, sortedRates)),
+      range: [0, 10, 25, 50, 75, 90, 100].map(n => Math.round(Common.getNthPercentile(n, sortedRates))),
+    };
+  }
+
   static calcEffectiveFeeStatistics(transactions: { weight: number, fee: number, effectiveFeePerVsize?: number, txid: string, acceleration?: boolean }[]): EffectiveFeeStats {
     const sortedTxs = transactions.map(tx => { return { txid: tx.txid, weight: tx.weight, rate: tx.effectiveFeePerVsize || ((tx.fee || 0) / (tx.weight / 4)) }; }).sort((a, b) => a.rate - b.rate);
 
@@ -898,8 +907,8 @@ export class Common {
     );
 
     return {
-      medianFee: medianFeeRate,
-      feeRange: [
+      effective_median: medianFeeRate,
+      effective_range: [
         minFee,
         [10,25,50,75,90].map(n => Common.getNthPercentile(n, sortedTxs).rate),
         maxFee,
@@ -1150,16 +1159,16 @@ export class OnlineFeeStatsCalculator {
     }
     return {
       minFee: this.feeRange[0].min,
-      medianFee: this.feeRange[Math.floor(this.feeRange.length / 2)].avg,
+      effective_median: this.feeRange[Math.floor(this.feeRange.length / 2)].avg,
       maxFee: this.feeRange[this.feeRange.length - 1].max,
-      feeRange: this.feeRange.map(f => f.avg),
+      effective_range: this.feeRange.map(f => f.avg),
     };
   }
 
   getFeeStats(): EffectiveFeeStats {
     const stats = this.getRawFeeStats();
-    stats.feeRange[0] = stats.minFee;
-    stats.feeRange[stats.feeRange.length - 1] = stats.maxFee;
+    stats.effective_range[0] = stats.minFee;
+    stats.effective_range[stats.effective_range.length - 1] = stats.maxFee;
     return stats;
   }
 }

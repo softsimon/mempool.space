@@ -23,7 +23,7 @@
         <div class="block-body">
           <ng-container *ngIf="!minimal">
             <div *ngIf="block?.extras; else emptyfees" [attr.data-cy]="'bitcoin-block-offset=' + offset + '-index-' + i + '-fees'" class="fees">
-              ~<app-fee-rate [fee]="block?.extras?.medianFee" unitClass="" rounding="1.0-0"></app-fee-rate>
+              ~<app-fee-rate [fee]="block?.extras?.effectiveMedianFee ?? block?.extras?.medianFee" unitClass="" rounding="1.0-0"></app-fee-rate>
             </div>
             <ng-template #emptyfees>
               <div [attr.data-cy]="'bitcoin-block-offset=' + offset + '-index-' + i + '-fees'" class="fees">

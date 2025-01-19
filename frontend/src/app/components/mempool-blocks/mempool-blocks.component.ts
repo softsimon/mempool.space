@@ -171,6 +171,8 @@ export class MempoolBlocksComponent implements OnInit, OnChanges, OnDestroy {
           block.index = this.blockIndex + i;
           block.height = lastBlock.height + i + 1;
           block.blink = specialBlocks[block.height]?.networks.includes(this.stateService.network || 'mainnet') ? true : false;
+          block.medianFee = block.effectiveMedianFee ?? block.medianFee;
+          block.feeRange = block.effectiveFeeRange ?? block.feeRange;
         });
 
         const stringifiedBlocks = JSON.stringify(mempoolBlocks);

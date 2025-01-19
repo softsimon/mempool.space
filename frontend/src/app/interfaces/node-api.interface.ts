@@ -196,6 +196,8 @@ export interface BlockExtension {
   minFee?: number;
   maxFee?: number;
   feeRange?: number[];
+  effectiveMedianFee?: number;
+  effectiveFeeRange?: number[];
   reward?: number;
   coinbaseRaw?: string;
   matchRate?: number;

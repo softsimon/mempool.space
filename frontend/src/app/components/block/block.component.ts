@@ -802,6 +802,9 @@ export class BlockComponent implements OnInit, OnDestroy {
   }
 
   getMinBlockFee(block: BlockExtended): number {
+    if (block?.extras?.effectiveFeeRange) {
+      return block.extras.effectiveFeeRange[0];
+    }
     if (block?.extras?.feeRange) {
       // heuristic to check if feeRange is adjusted for effective rates
       if (block.extras.medianFee === block.extras.feeRange[3]) {
@@ -814,6 +817,9 @@ export class BlockComponent implements OnInit, OnDestroy {
   }
 
   getMaxBlockFee(block: BlockExtended): number {
+    if (block?.extras?.effectiveFeeRange) {
+      return block.extras.effectiveFeeRange[block.extras.effectiveFeeRange.length - 1];
+    }
     if (block?.extras?.feeRange) {
       return block.extras.feeRange[block.extras.feeRange.length - 1];
     }

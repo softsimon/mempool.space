@@ -132,11 +132,11 @@
         <td i18n="mempool-block.fee-span">Fee span</td>
         <td><app-fee-rate [fee]="block.extras?.minFee" [showUnit]="false" rounding="1.0-0"></app-fee-rate> - <app-fee-rate [fee]="block.extras?.maxFee" rounding="1.0-0"></app-fee-rate></td>
       </tr>
-      <tr *ngIf="block.extras?.medianFee != undefined">
+      <tr *ngIf="block.extras?.effectiveMedianFee != undefined || block.extras?.medianFee != undefined">
         <td class="td-width" i18n="block.median-fee">Median fee</td>
-        <td>~<app-fee-rate [fee]="block.extras?.medianFee" rounding="1.0-0"></app-fee-rate>
+        <td>~<app-fee-rate [fee]="block.extras?.effectiveMedianFee ?? block.extras?.medianFee" rounding="1.0-0"></app-fee-rate>
           <span class="fiat">
-            <app-fiat [blockConversion]="blockConversion" [value]="block.extras?.medianFee * 140" digitsInfo="1.2-2"
+            <app-fiat [blockConversion]="blockConversion" [value]="(block.extras?.effectiveMedianFee ?? block.extras?.medianFee) * 140" digitsInfo="1.2-2"
               i18n-ngbTooltip="Transaction fee tooltip" ngbTooltip="Based on average native segwit transaction of 140 vBytes"
               placement="bottom"></app-fiat>
           </span>

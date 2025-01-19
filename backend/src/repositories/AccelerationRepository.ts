@@ -315,12 +315,12 @@ class AccelerationRepository {
             Infinity
           );
           const feeStats = Common.calcEffectiveFeeStatistics(template);
-          boostRate = feeStats.medianFee;
+          boostRate = feeStats.effective_median;
         }
         const accelerationSummaries = accelerations.map(acc => ({
           ...acc,
           pools: acc.pools,
-        }))
+        }));
         for (const acc of accelerations) {
           if (blockTxs[acc.txid] && acc.pools.includes(block.extras.pool.id)) {
             const tx = blockTxs[acc.txid];

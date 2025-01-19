@@ -73,6 +73,8 @@ export interface MempoolBlock {
   medianFee: number;
   totalFees: number;
   feeRange: number[];
+  effectiveMedianFee?: number;
+  effectiveFeeRange?: number[];
 }
 
 export interface MempoolBlockWithTransactions extends MempoolBlock {
@@ -288,8 +290,10 @@ export const TransactionFlags = {
 
 export interface BlockExtension {
   totalFees: number;
-  medianFee: number; // median fee rate
-  feeRange: number[]; // fee rate percentiles
+  medianFee: number; // core median fee rate
+  feeRange: number[]; // core fee rate percentiles
+  effectiveMedianFee?: number; // effective median fee rate
+  effectiveFeeRange?: number[]; // effective fee rate percentiles
   reward: number;
   matchRate: number | null;
   expectedFees: number | null;
@@ -369,9 +373,18 @@ export interface MempoolStats {
   tx_count: number;
 }
 
+// Core fee stats
+// measured in individual sats/vbyte
+export interface FeeStats {
+  median: number; // median core fee rate
+  range: number[]; // 0th, 10th, 25th, 50th, 75th, 90th, 100th percentiles
+}
+
+// Mempool effective fee stats
+// measured in effective sats/vbyte
 export interface EffectiveFeeStats {
-  medianFee: number; // median effective fee rate
-  feeRange: number[]; // 2nd, 10th, 25th, 50th, 75th, 90th, 98th percentiles
+  effective_median: number; // median effective fee rate by weight
+  effective_range: number[]; // 2nd, 10th, 25th, 50th, 75th, 90th, 98th percentiles
 }
 
 export interface WorkingEffectiveFeeStats extends EffectiveFeeStats {
